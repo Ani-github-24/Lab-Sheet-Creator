@@ -63,7 +63,7 @@ const PdfViewerPanel: React.FC = () => {
         // to the text even when scrolled down.
         const scrollTop = containerRef.current?.scrollTop || 0;
         const scrollLeft = containerRef.current?.scrollLeft || 0;
-        
+
         const x = rect.left - parentRect.left + scrollLeft + rect.width / 2;
         const y = rect.top - parentRect.top + scrollTop - 10; // 10px above the selection
 
@@ -107,7 +107,7 @@ const PdfViewerPanel: React.FC = () => {
           addQuestion(cleanedText);
         }
       });
-      
+
       // Clear selection and hide tooltip
       window.getSelection()?.removeAllRanges();
       setTooltipState((prev) => ({ ...prev, visible: false }));
@@ -118,7 +118,7 @@ const PdfViewerPanel: React.FC = () => {
     <div className="w-1/2 bg-gray-200 border-r border-gray-300 flex flex-col relative h-full">
       {/* Header */}
       <div className="p-8 bg-white border-b border-gray-300 shadow-sm z-10 sticky top-0 shrink-0">
-        <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">Lab Setup</h2>
+        <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">Lab Sheet Creator</h2>
         <p className="text-gray-500 mt-2 font-medium text-lg">Highlight text in your PDF to add it as a question.</p>
       </div>
 
@@ -150,8 +150,8 @@ const PdfViewerPanel: React.FC = () => {
             >
               {Array.from(new Array(numPages), (el, index) => (
                 <div key={`page_${index + 1}`} className="mb-6 shadow-xl rounded-lg overflow-hidden bg-white">
-                  <Page 
-                    pageNumber={index + 1} 
+                  <Page
+                    pageNumber={index + 1}
                     renderTextLayer={true}
                     renderAnnotationLayer={true}
                     width={containerRef.current ? containerRef.current.clientWidth - 64 : 600}
@@ -164,17 +164,17 @@ const PdfViewerPanel: React.FC = () => {
 
         {/* Tooltip */}
         {tooltipState.visible && (
-          <div 
+          <div
             className="absolute z-50 transform -translate-x-1/2 -translate-y-full pb-2 pointer-events-auto"
-            style={{ 
-              left: `${tooltipState.x}px`, 
-              top: `${tooltipState.y}px` 
+            style={{
+              left: `${tooltipState.x}px`,
+              top: `${tooltipState.y}px`
             }}
           >
             <button
               onMouseDown={(e) => {
                 // Prevent onMouseDown from causing window selection to be cleared before click registers
-                e.preventDefault(); 
+                e.preventDefault();
               }}
               onClick={handleAddQuestion}
               className="bg-gray-900 text-white px-5 py-2.5 rounded-xl shadow-2xl text-sm font-bold flex items-center gap-2 hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all animate-in fade-in zoom-in duration-200"
