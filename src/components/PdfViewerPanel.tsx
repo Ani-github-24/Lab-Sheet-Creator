@@ -148,7 +148,7 @@ const PdfViewerPanel: React.FC = () => {
               }
               className="w-full flex flex-col items-center"
             >
-              {Array.from(new Array(numPages), (el, index) => (
+              {Array.from(new Array(numPages), (_, index) => (
                 <div key={`page_${index + 1}`} className="mb-6 shadow-xl rounded-lg overflow-hidden bg-white">
                   <Page
                     pageNumber={index + 1}

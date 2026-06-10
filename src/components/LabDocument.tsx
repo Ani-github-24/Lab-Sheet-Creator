@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { LabMetadata, LabQuestion } from '../store';
+//@ts-ignore
 import amritaLogo from '../amrita-logo.png';
 
 const styles = StyleSheet.create({
@@ -159,9 +160,9 @@ const LabDocument: React.FC<LabDocumentProps> = ({ metadata, questions }) => (
                 <Text style={styles.questionText}>{q.questionText}</Text>
               </View>
               {q.screenshotUrl && (
-                <Image 
-                  src={q.screenshotUrl} 
-                  style={styles.image} 
+                <Image
+                  src={q.screenshotUrl}
+                  style={styles.image}
                 />
               )}
             </View>

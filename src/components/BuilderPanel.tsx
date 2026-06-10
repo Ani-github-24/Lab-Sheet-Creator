@@ -114,7 +114,8 @@ const QuestionCard: React.FC<{ q: LabQuestion }> = ({ q }) => {
           <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
             <img
               src={q.screenshotUrl}
-              alt={`Screenshot for Question ${q.order}`}
+
+              alt={`Screenshot for Question ${q.prefix}`}
               className="w-full h-auto object-contain block"
             />
             <div className="absolute inset-0 bg-gray-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">

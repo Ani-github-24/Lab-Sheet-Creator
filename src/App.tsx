@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import BuilderPanel from './components/BuilderPanel';
 import PdfViewerPanel from './components/PdfViewerPanel';
@@ -51,7 +51,7 @@ function App() {
 
             <PDFDownloadLink
               document={<LabDocument metadata={metadata} questions={questions} />}
-              fileName={`Lab_${metadata.labNumber}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`}
+              fileName={`Lab_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`}
             >
               {({ loading }) => (
                 <button
@@ -89,7 +89,7 @@ function App() {
           <BuilderPanel />
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 
