@@ -22,6 +22,7 @@ export interface LabQuestion {
   prefix: string;
   questionText: string;
   screenshotUrl: string | null;
+  type?: 'question' | 'subheading';
 }
 
 export interface LabState {
@@ -44,8 +45,22 @@ export interface LabState {
   updateLogo: (file: Blob) => void;
   resetLogo: () => void;
   addBlankQuestion: () => void;
+  addSubheading: () => void;
   moveQuestion: (id: string, direction: 'up' | 'down') => void;
 }
+
+const getNextPrefix = (questions: LabQuestion[]): string => {
+  if (questions.length === 0) return '1.';
+  const lastQ = questions[questions.length - 1];
+  if (lastQ.type === 'subheading') return '1.';
+
+  const match = lastQ.prefix.match(/(\d+)/);
+  if (match) {
+    const num = parseInt(match[1], 10);
+    return lastQ.prefix.replace(/\d+/, String(num + 1));
+  }
+  return 'Q.';
+};
 
 const defaultMetadata: LabMetadata = {
   campus: "",
@@ -96,7 +111,7 @@ export const useLabStore = create<LabState>((set, get) => ({
       const dbMetadata = await db.metadata.get(1);
       const initialMetadata = dbMetadata ? { ...dbMetadata } : defaultMetadata;
       if (dbMetadata) delete (initialMetadata as any).id;
-      
+
       if (dbMetadata && dbMetadata.logoBlob) {
         initialMetadata.logoUrl = URL.createObjectURL(dbMetadata.logoBlob);
       } else {
@@ -110,6 +125,7 @@ export const useLabStore = create<LabState>((set, get) => ({
         prefix: q.prefix || String(q.order) + ".",
         questionText: q.questionText,
         screenshotUrl: q.imageBlob ? URL.createObjectURL(q.imageBlob) : null,
+        type: q.type || 'question',
       }));
 
       set({
@@ -136,16 +152,16 @@ export const useLabStore = create<LabState>((set, get) => ({
   updateLogo: (file) => {
     set((state) => {
       const url = URL.createObjectURL(file);
-      
+
       if (state.metadata.logoUrl) {
         URL.revokeObjectURL(state.metadata.logoUrl);
       }
-      
+
       const newMetadata = { ...state.metadata, logoUrl: url };
-      
+
       // Update Dexie asynchronously
       db.metadata.update(1, { logoBlob: file }).catch(console.error);
-      
+
       return { metadata: newMetadata };
     });
   },
@@ -156,10 +172,10 @@ export const useLabStore = create<LabState>((set, get) => ({
         URL.revokeObjectURL(state.metadata.logoUrl);
       }
       const newMetadata = { ...state.metadata, logoUrl: null };
-      
+
       // Update Dexie asynchronously
       db.metadata.update(1, { logoBlob: null }).catch(console.error);
-      
+
       return { metadata: newMetadata };
     });
   },
@@ -169,9 +185,10 @@ export const useLabStore = create<LabState>((set, get) => ({
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
-        prefix: customPrefix || `${order}.`,
+        prefix: customPrefix || getNextPrefix(state.questions),
         questionText: text,
         screenshotUrl: null,
+        type: 'question',
       };
 
       const newDbQuestion: DBQuestion = {
@@ -180,6 +197,7 @@ export const useLabStore = create<LabState>((set, get) => ({
         prefix: newQuestion.prefix,
         questionText: newQuestion.questionText,
         imageBlob: null,
+        type: 'question',
       };
 
       db.questions.put(newDbQuestion).catch(console.error);
@@ -195,9 +213,10 @@ export const useLabStore = create<LabState>((set, get) => ({
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
-        prefix: `Q.`,
+        prefix: getNextPrefix(state.questions),
         questionText: '',
         screenshotUrl: null,
+        type: 'question',
       };
 
       const newDbQuestion: DBQuestion = {
@@ -206,6 +225,35 @@ export const useLabStore = create<LabState>((set, get) => ({
         prefix: newQuestion.prefix,
         questionText: newQuestion.questionText,
         imageBlob: null,
+        type: 'question',
+      };
+
+      db.questions.put(newDbQuestion).catch(console.error);
+
+      return {
+        questions: [...state.questions, newQuestion],
+      };
+    });
+  },
+
+  addSubheading: () => {
+    set((state) => {
+      const order = state.questions.length + 1;
+      const newQuestion: LabQuestion = {
+        id: crypto.randomUUID(),
+        prefix: '',
+        questionText: 'New Section',
+        screenshotUrl: null,
+        type: 'subheading',
+      };
+
+      const newDbQuestion: DBQuestion = {
+        id: newQuestion.id,
+        order: order,
+        prefix: newQuestion.prefix,
+        questionText: newQuestion.questionText,
+        imageBlob: null,
+        type: 'subheading',
       };
 
       db.questions.put(newDbQuestion).catch(console.error);
@@ -225,7 +273,7 @@ export const useLabStore = create<LabState>((set, get) => ({
 
       const newQuestions = [...state.questions];
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      
+
       // Swap
       [newQuestions[index], newQuestions[targetIndex]] = [newQuestions[targetIndex], newQuestions[index]];
 
@@ -247,11 +295,11 @@ export const useLabStore = create<LabState>((set, get) => ({
   removeQuestion: (id) => {
     set((state) => {
       const filteredQuestions = state.questions.filter((q) => q.id !== id);
-      
+
       // Update Dexie
       db.transaction('rw', db.questions, async () => {
         await db.questions.delete(id);
-        
+
         const promises = filteredQuestions.map(async (q, index) => {
           const dbQ = await db.questions.get(q.id);
           if (dbQ) {

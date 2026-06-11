@@ -12,6 +12,7 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
 
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(q.questionText);
+  const isSubheading = q.type === 'subheading';
 
   const handlePaste = (e: ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -37,22 +38,24 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
 
   return (
     <div
-      className="bg-white shadow-sm rounded-xl p-6 border border-gray-100 flex flex-col gap-4 transition-all hover:shadow-md"
+      className={`bg-white shadow-sm rounded-xl p-6 border ${isSubheading ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-100'} flex flex-col gap-4 transition-all hover:shadow-md`}
     >
       <div className="flex justify-between items-start gap-4">
         <div className="flex-1 text-lg">
-          <input
-            value={q.prefix}
-            onChange={(e) => editQuestionPrefix(q.id, e.target.value)}
-            className="font-bold text-gray-800 mr-2 w-16 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none transition-colors"
-            placeholder="1."
-          />
+          {!isSubheading && (
+            <input
+              value={q.prefix}
+              onChange={(e) => editQuestionPrefix(q.id, e.target.value)}
+              className="font-bold text-gray-800 mr-2 w-16 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none transition-colors"
+              placeholder="1."
+            />
+          )}
           {isEditing ? (
-            <div className="mt-2 flex flex-col gap-2">
+            <div className={`mt-2 flex flex-col gap-2 ${isSubheading ? 'w-full' : ''}`}>
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y min-h-[100px]"
+                className={`w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y ${isSubheading ? 'font-bold min-h-[60px]' : 'min-h-[100px]'}`}
               />
               <div className="flex gap-2">
                 <button
@@ -73,7 +76,9 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
               </div>
             </div>
           ) : (
-            <span className="text-gray-700 leading-relaxed">{q.questionText}</span>
+            <span className={`text-gray-700 leading-relaxed ${isSubheading ? 'font-extrabold text-xl block w-full border-b-2 border-indigo-200 pb-2 mb-2' : ''}`}>
+              {q.questionText}
+            </span>
           )}
         </div>
         <div className="flex flex-col gap-2 flex-shrink-0">
@@ -114,8 +119,9 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
         </div>
       </div>
 
-      <div className="mt-2">
-        {!q.screenshotUrl ? (
+      {!isSubheading && (
+        <div className="mt-2">
+          {!q.screenshotUrl ? (
           <div
             tabIndex={0}
             onPaste={handlePaste}
@@ -148,6 +154,7 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };
@@ -155,10 +162,12 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
 const BuilderPanel: React.FC = () => {
   const questions = useLabStore((state) => state.questions);
   const addBlankQuestion = useLabStore((state) => state.addBlankQuestion);
+  const addSubheading = useLabStore((state) => state.addSubheading);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <FrontPageEditor />
+    <div className="flex flex-col min-h-full">
+      <div className="flex flex-col gap-6 p-6 pb-24 flex-1">
+        <FrontPageEditor />
       {questions.length === 0 ? (
         <div className="text-gray-400 text-center mt-12 text-lg">
           No questions yet. Add one from the left panel or start with a blank question.
@@ -174,15 +183,25 @@ const BuilderPanel: React.FC = () => {
           />
         ))
       )}
+      </div>
 
-      {/* Add Blank Question Button */}
-      <button
-        onClick={addBlankQuestion}
-        className="mt-4 flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-all font-bold"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-        Add Blank Question
-      </button>
+      {/* Action Buttons - Sticky to bottom */}
+      <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex gap-4 z-20 mt-auto">
+        <button
+          onClick={addBlankQuestion}
+          className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-all font-bold"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+          Add Blank Question
+        </button>
+        <button
+          onClick={addSubheading}
+          className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-dashed border-indigo-200 rounded-xl text-indigo-500 hover:text-indigo-700 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-bold"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+          Add Subheading
+        </button>
+      </div>
     </div>
   );
 };

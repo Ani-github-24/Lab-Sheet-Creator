@@ -117,9 +117,9 @@ const PdfViewerPanel: React.FC = () => {
   return (
     <div className="w-1/2 bg-gray-200 border-r border-gray-300 flex flex-col relative h-full">
       {/* Header */}
-      <div className="p-8 bg-white border-b border-gray-300 shadow-sm z-10 sticky top-0 shrink-0">
-        <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">Lab Sheet Creator</h2>
-        <p className="text-gray-500 mt-2 font-medium text-lg">Highlight text in your PDF to add it as a question.</p>
+      <div className="p-4 px-6 bg-white border-b border-gray-300 shadow-sm z-10 sticky top-0 shrink-0">
+        <h2 className="text-xl font-extrabold text-gray-800 tracking-tight">Lab Sheet Creator</h2>
+        <p className="text-gray-500 mt-1 font-medium text-sm">Highlight text in your PDF to add it as a question.</p>
       </div>
 
       <div className="flex-1 overflow-y-auto bg-gray-100 p-8 relative" ref={containerRef}>

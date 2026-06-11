@@ -104,6 +104,13 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
     borderRadius: 4,
   },
+  subheading: {
+    fontSize: 14,
+    fontFamily: 'Helvetica-Bold',
+    marginTop: 15,
+    marginBottom: 5,
+    textDecoration: 'underline',
+  },
 });
 
 interface LabDocumentProps {
@@ -194,20 +201,30 @@ const LabDocument: React.FC<LabDocumentProps> = ({ metadata, questions }) => (
       {/* Questions start on a new page but within the same Page element to inherit border */}
       {questions.length > 0 && (
         <View break style={styles.questionsContainer}>
-          {questions.map((q) => (
-            <View key={q.id} style={styles.questionContainer} wrap={false}>
-              <View style={styles.questionTextContainer}>
-                <Text style={styles.questionNumber}>{q.prefix}</Text>
-                <Text style={styles.questionText}>{q.questionText}</Text>
+          {questions.map((q) => {
+            if (q.type === 'subheading') {
+              return (
+                <Text key={q.id} style={styles.subheading}>
+                  {q.questionText}
+                </Text>
+              );
+            }
+
+            return (
+              <View key={q.id} style={styles.questionContainer} wrap={false}>
+                <View style={styles.questionTextContainer}>
+                  <Text style={styles.questionNumber}>{q.prefix}</Text>
+                  <Text style={styles.questionText}>{q.questionText}</Text>
+                </View>
+                {q.screenshotUrl && (
+                  <Image
+                    src={q.screenshotUrl}
+                    style={styles.image}
+                  />
+                )}
               </View>
-              {q.screenshotUrl && (
-                <Image
-                  src={q.screenshotUrl}
-                  style={styles.image}
-                />
-              )}
-            </View>
-          ))}
+            );
+          })}
         </View>
       )}
     </Page>

@@ -8,7 +8,7 @@ const metadataFields: { key: keyof LabMetadata; label: string; placeholder: stri
   { key: 'courseTitle', label: 'Course Title', placeholder: 'e.g., Linux Administration Lab' },
   { key: 'semester', label: 'Semester', placeholder: 'e.g., 4' },
   { key: 'academicYear', label: 'Academic Year', placeholder: 'e.g., 2025-2026' },
-  { key: 'batch', label: 'Batch', placeholder: 'e.g., 2024-2028' },
+  { key: 'batch', label: 'Batch', placeholder: 'e.g., CSE' },
   { key: 'campus', label: 'Campus', placeholder: 'e.g., Nagercoil Campus' },
   { key: 'studentName', label: 'Student Name', placeholder: 'e.g., John Doe' },
   { key: 'rollNumber', label: 'Roll Number', placeholder: 'e.g., CB.EN.U4CSE20000' },
@@ -57,7 +57,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
             <div className="flex-1">
               <h4 className="text-sm font-bold text-gray-800 mb-1">Custom University Logo</h4>
               <p className="text-xs text-gray-500 mb-4">Upload a custom logo to replace the default asset. Will persist offline.</p>
-              
+
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition-colors shadow-sm text-sm font-semibold">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -66,7 +66,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               </label>
             </div>
-            
+
             {metadata.logoUrl && (
               <div className="flex flex-col items-center gap-2 border-l border-gray-200 pl-6">
                 <img src={metadata.logoUrl} alt="Custom Logo" className="w-16 h-16 object-contain border border-gray-300 rounded-md bg-white p-1" />
