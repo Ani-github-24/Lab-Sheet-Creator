@@ -55,6 +55,17 @@ const styles = StyleSheet.create({
   blockTextBold: {
     fontFamily: 'Helvetica-Bold',
   },
+  tableRow: {
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  tableLabel: {
+    width: 130,
+    fontFamily: 'Helvetica-Bold',
+  },
+  tableValue: {
+    flex: 1,
+  },
   signatureGrid: {
     position: 'absolute',
     bottom: 0,
@@ -117,30 +128,60 @@ const LabDocument: React.FC<LabDocumentProps> = ({ metadata, questions }) => (
 
         {/* Left-Aligned Block 1 */}
         <View style={styles.leftBlock}>
-          <Text><Text style={styles.blockTextBold}>Title:</Text> {metadata.title}</Text>
-          <Text><Text style={styles.blockTextBold}>Course Code:</Text> {metadata.courseCode}</Text>
-          <Text><Text style={styles.blockTextBold}>Course Title:</Text> {metadata.courseTitle}</Text>
-          <Text><Text style={styles.blockTextBold}>Semester:</Text> {metadata.semester}</Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Title</Text>
+            <Text style={styles.tableValue}>: {metadata.title}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Course Code</Text>
+            <Text style={styles.tableValue}>: {metadata.courseCode}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Course Title</Text>
+            <Text style={styles.tableValue}>: {metadata.courseTitle}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Semester</Text>
+            <Text style={styles.tableValue}>: {metadata.semester}</Text>
+          </View>
         </View>
 
         {/* Left-Aligned Block 2 */}
         <View style={styles.leftBlock}>
-          <Text><Text style={styles.blockTextBold}>Academic Year:</Text> {metadata.academicYear}</Text>
-          <Text><Text style={styles.blockTextBold}>Batch:</Text> {metadata.batch}</Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Academic Year</Text>
+            <Text style={styles.tableValue}>: {metadata.academicYear}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Batch</Text>
+            <Text style={styles.tableValue}>: {metadata.batch}</Text>
+          </View>
         </View>
 
         {/* Left-Aligned Block 3 */}
         <View style={styles.leftBlock}>
           <Text style={{ marginBottom: 4 }}>Submitted by,</Text>
-          <Text><Text style={styles.blockTextBold}>Name:</Text> {metadata.studentName}</Text>
-          <Text><Text style={styles.blockTextBold}>Roll Number:</Text> {metadata.rollNumber}</Text>
-          <Text><Text style={styles.blockTextBold}>Date of Submission:</Text> {metadata.dateOfSubmission}</Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Name</Text>
+            <Text style={styles.tableValue}>: {metadata.studentName}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Roll Number</Text>
+            <Text style={styles.tableValue}>: {metadata.rollNumber}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Date of Submission</Text>
+            <Text style={styles.tableValue}>: {metadata.dateOfSubmission}</Text>
+          </View>
         </View>
 
         {/* Left-Aligned Block 4 */}
         <View style={styles.leftBlock}>
           <Text style={{ marginBottom: 4 }}>Submitted To,</Text>
-          <Text><Text style={styles.blockTextBold}>Name:</Text> {metadata.coordinatorName}</Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableLabel}>Name</Text>
+            <Text style={styles.tableValue}>: {metadata.coordinatorName}</Text>
+          </View>
         </View>
 
         {/* Bottom Signature Grid */}

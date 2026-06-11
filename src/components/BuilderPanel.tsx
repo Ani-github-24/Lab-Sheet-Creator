@@ -2,12 +2,13 @@ import React, { ClipboardEvent, useState } from 'react';
 import { useLabStore, LabQuestion } from '../store';
 import FrontPageEditor from './FrontPageEditor';
 
-const QuestionCard: React.FC<{ q: LabQuestion }> = ({ q }) => {
+const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; isLast: boolean }> = ({ q, isFirst, isLast }) => {
   const removeQuestion = useLabStore((state) => state.removeQuestion);
   const attachScreenshot = useLabStore((state) => state.attachScreenshot);
   const removeScreenshot = useLabStore((state) => state.removeScreenshot);
   const editQuestionText = useLabStore((state) => state.editQuestionText);
   const editQuestionPrefix = useLabStore((state) => state.editQuestionPrefix);
+  const moveQuestion = useLabStore((state) => state.moveQuestion);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(q.questionText);
@@ -76,6 +77,24 @@ const QuestionCard: React.FC<{ q: LabQuestion }> = ({ q }) => {
           )}
         </div>
         <div className="flex flex-col gap-2 flex-shrink-0">
+          <div className="flex gap-2">
+            <button
+              onClick={() => moveQuestion(q.id, 'up')}
+              disabled={isFirst}
+              className={`p-1.5 rounded-lg transition-colors flex-1 flex justify-center border ${isFirst ? 'text-gray-300 cursor-not-allowed border-transparent bg-gray-50' : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border-gray-200 shadow-sm'}`}
+              title="Move Up"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
+            </button>
+            <button
+              onClick={() => moveQuestion(q.id, 'down')}
+              disabled={isLast}
+              className={`p-1.5 rounded-lg transition-colors flex-1 flex justify-center border ${isLast ? 'text-gray-300 cursor-not-allowed border-transparent bg-gray-50' : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border-gray-200 shadow-sm'}`}
+              title="Move Down"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+          </div>
           {!isEditing && (
             <button
               onClick={() => setIsEditing(true)}
@@ -135,17 +154,35 @@ const QuestionCard: React.FC<{ q: LabQuestion }> = ({ q }) => {
 
 const BuilderPanel: React.FC = () => {
   const questions = useLabStore((state) => state.questions);
+  const addBlankQuestion = useLabStore((state) => state.addBlankQuestion);
 
   return (
     <div className="flex flex-col gap-6 p-6">
       <FrontPageEditor />
       {questions.length === 0 ? (
         <div className="text-gray-400 text-center mt-12 text-lg">
-          No questions yet. Add one from the left panel.
+          No questions yet. Add one from the left panel or start with a blank question.
         </div>
       ) : (
-        questions.map((q) => <QuestionCard key={q.id} q={q} />)
+        questions.map((q, index) => (
+          <QuestionCard 
+            key={q.id} 
+            q={q} 
+            index={index} 
+            isFirst={index === 0} 
+            isLast={index === questions.length - 1} 
+          />
+        ))
       )}
+
+      {/* Add Blank Question Button */}
+      <button
+        onClick={addBlankQuestion}
+        className="mt-4 flex items-center justify-center gap-2 w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 transition-all font-bold"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+        Add Blank Question
+      </button>
     </div>
   );
 };

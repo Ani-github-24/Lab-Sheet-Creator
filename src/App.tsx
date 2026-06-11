@@ -3,6 +3,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import BuilderPanel from './components/BuilderPanel';
 import PdfViewerPanel from './components/PdfViewerPanel';
 import LabDocument from './components/LabDocument';
+import FrontPageEditor from './components/FrontPageEditor';
 import { useLabStore } from './store';
 
 function App() {
@@ -11,6 +12,8 @@ function App() {
   const initializeStore = useLabStore((state) => state.initializeStore);
   const isInitialized = useLabStore((state) => state.isInitialized);
   const resetWorkspace = useLabStore((state) => state.resetWorkspace);
+  const isSetupComplete = useLabStore((state) => state.isSetupComplete);
+  const completeSetup = useLabStore((state) => state.completeSetup);
 
   useEffect(() => {
     initializeStore();
@@ -18,6 +21,29 @@ function App() {
 
   if (!isInitialized) {
     return <div className="flex h-screen w-full items-center justify-center bg-gray-50 text-indigo-600 font-bold text-xl">Loading Lab Sheet...</div>;
+  }
+
+  if (!isSetupComplete) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-8">
+        <div className="w-full max-w-3xl bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
+          <div className="p-8 pb-0">
+            <h1 className="text-4xl font-extrabold text-gray-900 mb-2 tracking-tight text-center">Setup Lab Sheet</h1>
+            <p className="text-gray-500 text-center text-lg mb-8">Please verify your cover page details before starting the lab.</p>
+          </div>
+          <div className="px-8 pb-8">
+            <FrontPageEditor initiallyOpen={true} />
+            <button
+              onClick={completeSetup}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl shadow-md transition-all active:scale-95 text-lg flex items-center justify-center gap-2"
+            >
+              Confirm Details & Start Lab
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

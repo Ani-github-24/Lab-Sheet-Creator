@@ -28,6 +28,8 @@ export interface LabState {
   metadata: LabMetadata;
   questions: LabQuestion[];
   isInitialized: boolean;
+  isSetupComplete: boolean;
+  completeSetup: () => void;
   initializeStore: () => Promise<void>;
   updateMetadata: (fields: Partial<LabMetadata>) => void;
   addQuestion: (text: string, prefix?: string) => void;
@@ -41,21 +43,23 @@ export interface LabState {
   resetWorkspace: () => void;
   updateLogo: (file: Blob) => void;
   resetLogo: () => void;
+  addBlankQuestion: () => void;
+  moveQuestion: (id: string, direction: 'up' | 'down') => void;
 }
 
 const defaultMetadata: LabMetadata = {
-  campus: "Nagercoil Campus",
-  assignmentType: "ASSIGNMENT",
-  title: "Lab 1: Linux Basics",
-  courseCode: "CS201",
-  courseTitle: "Linux Administration Lab",
-  semester: "4",
-  academicYear: "2025-2026",
-  batch: "2024-2028",
-  studentName: "Anirudha R",
-  rollNumber: "CB.EN.U4CSE...",
-  dateOfSubmission: "2026-06-10",
-  coordinatorName: "Professor Name",
+  campus: "",
+  assignmentType: "",
+  title: "",
+  courseCode: "",
+  courseTitle: "",
+  semester: "",
+  academicYear: "",
+  batch: "",
+  studentName: "",
+  rollNumber: "",
+  dateOfSubmission: "",
+  coordinatorName: "",
   logoUrl: null,
 };
 
@@ -63,6 +67,8 @@ export const useLabStore = create<LabState>((set, get) => ({
   metadata: defaultMetadata,
   questions: [],
   isInitialized: false,
+  isSetupComplete: false,
+  completeSetup: () => set({ isSetupComplete: true }),
   pdfFile: null,
 
   setPdfFile: (file) => set({ pdfFile: file }),
@@ -181,6 +187,60 @@ export const useLabStore = create<LabState>((set, get) => ({
       return {
         questions: [...state.questions, newQuestion],
       };
+    });
+  },
+
+  addBlankQuestion: () => {
+    set((state) => {
+      const order = state.questions.length + 1;
+      const newQuestion: LabQuestion = {
+        id: crypto.randomUUID(),
+        prefix: `Q.`,
+        questionText: '',
+        screenshotUrl: null,
+      };
+
+      const newDbQuestion: DBQuestion = {
+        id: newQuestion.id,
+        order: order,
+        prefix: newQuestion.prefix,
+        questionText: newQuestion.questionText,
+        imageBlob: null,
+      };
+
+      db.questions.put(newDbQuestion).catch(console.error);
+
+      return {
+        questions: [...state.questions, newQuestion],
+      };
+    });
+  },
+
+  moveQuestion: (id, direction) => {
+    set((state) => {
+      const index = state.questions.findIndex((q) => q.id === id);
+      if (index === -1) return state;
+      if (direction === 'up' && index === 0) return state;
+      if (direction === 'down' && index === state.questions.length - 1) return state;
+
+      const newQuestions = [...state.questions];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      
+      // Swap
+      [newQuestions[index], newQuestions[targetIndex]] = [newQuestions[targetIndex], newQuestions[index]];
+
+      // Update Dexie
+      db.transaction('rw', db.questions, async () => {
+        const promises = newQuestions.map(async (q, idx) => {
+          const dbQ = await db.questions.get(q.id);
+          if (dbQ) {
+            await db.questions.update(q.id, { order: idx + 1 });
+          }
+        });
+        await Promise.all(promises);
+      }).catch(console.error);
+
+      return { questions: newQuestions };
     });
   },
 

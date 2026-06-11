@@ -16,12 +16,16 @@ const metadataFields: { key: keyof LabMetadata; label: string; placeholder: stri
   { key: 'coordinatorName', label: 'Coordinator Name', placeholder: 'e.g., Professor Name' },
 ];
 
-const FrontPageEditor: React.FC = () => {
+interface FrontPageEditorProps {
+  initiallyOpen?: boolean;
+}
+
+const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false }) => {
   const metadata = useLabStore((state) => state.metadata);
   const updateMetadata = useLabStore((state) => state.updateMetadata);
   const updateLogo = useLabStore((state) => state.updateLogo);
   const resetLogo = useLabStore((state) => state.resetLogo);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(initiallyOpen);
 
   const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
