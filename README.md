@@ -1,4 +1,4 @@
-# 📄 LabSheet Automator
+# 📄 Lab Sheet Creator
 
 **A local-first, zero-friction document compiler designed to automate the creation of university lab records.**
 
