@@ -213,7 +213,7 @@ export const useLabStore = create<LabState>((set, get) => ({
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
-        prefix: getNextPrefix(state.questions),
+        prefix: 'Q',
         questionText: '',
         screenshotUrl: null,
         type: 'question',

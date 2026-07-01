@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
   },
   image: {
     maxWidth: '100%',
+    objectFit: 'contain',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderStyle: 'solid',
