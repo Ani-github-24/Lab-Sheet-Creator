@@ -1,14 +1,14 @@
 import React, { ClipboardEvent, useState } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useLabStore, LabQuestion } from '../store';
 import FrontPageEditor from './FrontPageEditor';
 
-const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; isLast: boolean }> = ({ q, isFirst, isLast }) => {
+const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index }) => {
   const removeQuestion = useLabStore((state) => state.removeQuestion);
   const attachScreenshot = useLabStore((state) => state.attachScreenshot);
   const removeScreenshot = useLabStore((state) => state.removeScreenshot);
   const editQuestionText = useLabStore((state) => state.editQuestionText);
   const editQuestionPrefix = useLabStore((state) => state.editQuestionPrefix);
-  const moveQuestion = useLabStore((state) => state.moveQuestion);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(q.questionText);
@@ -32,11 +32,22 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
   // Edit logic is now handled directly via onMouseLeave on the container
 
   return (
-    <div
-      className={`bg-white shadow-sm rounded-xl p-6 border ${isSubheading ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-100'} flex flex-col gap-4 transition-all hover:shadow-md`}
-    >
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex-1 text-lg flex flex-col items-start sm:flex-row">
+    <Draggable draggableId={q.id} index={index}>
+      {(provided) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className={`bg-white shadow-sm rounded-xl p-6 border ${isSubheading ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-100'} flex flex-col gap-4 transition-all hover:shadow-md mb-2`}
+        >
+          <div className="flex justify-between items-start gap-4">
+            <div 
+              {...provided.dragHandleProps}
+              className="mt-1 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+              title="Drag to reorder"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path></svg>
+            </div>
+            <div className="flex-1 text-lg flex flex-col items-start sm:flex-row">
           {!isSubheading && (
             <input
               value={q.prefix}
@@ -68,24 +79,6 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
           </div>
         </div>
         <div className="flex flex-col gap-2 flex-shrink-0">
-          <div className="flex gap-2">
-            <button
-              onClick={() => moveQuestion(q.id, 'up')}
-              disabled={isFirst}
-              className={`p-1.5 rounded-lg transition-colors flex-1 flex justify-center border ${isFirst ? 'text-gray-300 cursor-not-allowed border-transparent bg-gray-50' : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border-gray-200 shadow-sm'}`}
-              title="Move Up"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
-            </button>
-            <button
-              onClick={() => moveQuestion(q.id, 'down')}
-              disabled={isLast}
-              className={`p-1.5 rounded-lg transition-colors flex-1 flex justify-center border ${isLast ? 'text-gray-300 cursor-not-allowed border-transparent bg-gray-50' : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 border-gray-200 shadow-sm'}`}
-              title="Move Down"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-          </div>
           {/* Edit button removed in favor of hover-to-edit */}
           <button
             onClick={() => removeQuestion(q.id)}
@@ -133,7 +126,9 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number; isFirst: boolean; 
         )}
       </div>
       )}
-    </div>
+        </div>
+      )}
+    </Draggable>
   );
 };
 
@@ -141,6 +136,20 @@ const BuilderPanel: React.FC = () => {
   const questions = useLabStore((state) => state.questions);
   const addBlankQuestion = useLabStore((state) => state.addBlankQuestion);
   const addSubheading = useLabStore((state) => state.addSubheading);
+  const setQuestions = useLabStore((state) => state.setQuestions);
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    
+    const startIndex = result.source.index;
+    const endIndex = result.destination.index;
+    
+    const newQuestions = Array.from(questions);
+    const [removed] = newQuestions.splice(startIndex, 1);
+    newQuestions.splice(endIndex, 0, removed);
+    
+    setQuestions(newQuestions);
+  };
 
   return (
     <div className="flex flex-col min-h-full">
@@ -151,15 +160,26 @@ const BuilderPanel: React.FC = () => {
           No questions yet. Add one from the left panel or start with a blank question.
         </div>
       ) : (
-        questions.map((q, index) => (
-          <QuestionCard 
-            key={q.id} 
-            q={q} 
-            index={index} 
-            isFirst={index === 0} 
-            isLast={index === questions.length - 1} 
-          />
-        ))
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="questions-list">
+            {(provided) => (
+              <div 
+                {...provided.droppableProps} 
+                ref={provided.innerRef}
+                className="flex flex-col gap-2"
+              >
+                {questions.map((q, index) => (
+                  <QuestionCard 
+                    key={q.id} 
+                    q={q} 
+                    index={index} 
+                  />
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       )}
       </div>
 

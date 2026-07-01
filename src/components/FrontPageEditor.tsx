@@ -69,7 +69,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
 
             {metadata.logoUrl && (
               <div className="flex flex-col items-center gap-2 border-l border-gray-200 pl-6">
-                <img src={metadata.logoUrl} alt="Custom Logo" className="w-16 h-16 object-contain border border-gray-300 rounded-md bg-white p-1" />
+                <img src={metadata.logoUrl} alt="Custom Logo" className="w-32 h-32 object-contain border border-gray-300 rounded-md bg-white p-1" />
                 <button
                   onClick={resetLogo}
                   className="text-xs text-red-500 hover:text-red-700 font-semibold underline"

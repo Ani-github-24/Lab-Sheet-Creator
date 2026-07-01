@@ -47,6 +47,7 @@ export interface LabState {
   addBlankQuestion: () => void;
   addSubheading: () => void;
   moveQuestion: (id: string, direction: 'up' | 'down') => void;
+  setQuestions: (questions: LabQuestion[]) => void;
 }
 
 const getNextPrefix = (questions: LabQuestion[]): string => {
@@ -277,6 +278,23 @@ export const useLabStore = create<LabState>((set, get) => ({
       // Swap
       [newQuestions[index], newQuestions[targetIndex]] = [newQuestions[targetIndex], newQuestions[index]];
 
+      // Update Dexie
+      db.transaction('rw', db.questions, async () => {
+        const promises = newQuestions.map(async (q, idx) => {
+          const dbQ = await db.questions.get(q.id);
+          if (dbQ) {
+            await db.questions.update(q.id, { order: idx + 1 });
+          }
+        });
+        await Promise.all(promises);
+      }).catch(console.error);
+
+      return { questions: newQuestions };
+    });
+  },
+
+  setQuestions: (newQuestions) => {
+    set((state) => {
       // Update Dexie
       db.transaction('rw', db.questions, async () => {
         const promises = newQuestions.map(async (q, idx) => {

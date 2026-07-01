@@ -11,6 +11,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@react-pdf/renderer": "^4.5.1",
     "dexie": "^4.4.3",
     "react": "^18.2.0",
