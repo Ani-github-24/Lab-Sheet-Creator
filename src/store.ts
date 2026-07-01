@@ -294,7 +294,7 @@ export const useLabStore = create<LabState>((set, get) => ({
   },
 
   setQuestions: (newQuestions) => {
-    set((state) => {
+    set(() => {
       // Update Dexie
       db.transaction('rw', db.questions, async () => {
         const promises = newQuestions.map(async (q, idx) => {
