@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import BuilderPanel from './components/BuilderPanel';
 import PdfViewerPanel from './components/PdfViewerPanel';
@@ -7,6 +7,7 @@ import FrontPageEditor from './components/FrontPageEditor';
 import { useLabStore } from './store';
 
 function App() {
+  const [hasDownloaded, setHasDownloaded] = useState(false);
   const questions = useLabStore((state) => state.questions);
   const metadata = useLabStore((state) => state.metadata);
   const initializeStore = useLabStore((state) => state.initializeStore);
@@ -81,6 +82,7 @@ function App() {
             >
               {({ loading }) => (
                 <button
+                  onClick={() => setHasDownloaded(true)}
                   disabled={loading || questions.length === 0}
                   className={`flex items-center gap-2 px-5 py-2 rounded-xl font-bold text-white shadow-sm transition-all text-sm
                   ${loading || questions.length === 0
@@ -110,6 +112,29 @@ function App() {
             </PDFDownloadLink>
           </div>
         </div>
+
+        {hasDownloaded && (
+          <div className="m-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl relative shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 z-10">
+            <div className="text-emerald-800 font-medium text-sm pr-6">
+              🎉 PDF Generated Successfully! If this tool saved you time today, please consider giving it a star on GitHub.
+            </div>
+            <a
+              href="https://github.com/Ani-github-24/Lab-Sheet-Creator"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 font-bold text-sm shadow-sm transition-all whitespace-nowrap"
+            >
+              ⭐ Star on GitHub
+            </a>
+            <button
+              onClick={() => setHasDownloaded(false)}
+              className="absolute top-2 right-2 text-emerald-600 hover:text-emerald-800 p-1 rounded-full hover:bg-emerald-100 transition-colors"
+              aria-label="Dismiss"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+        )}
 
         <div className="overflow-y-auto flex-1 bg-slate-50/50">
           <BuilderPanel />

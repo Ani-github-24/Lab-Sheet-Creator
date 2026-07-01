@@ -15,6 +15,7 @@ export interface LabMetadata {
   dateOfSubmission: string;
   coordinatorName: string;
   logoUrl: string | null;
+  fontFamily: 'Helvetica' | 'Times-Roman' | 'Courier';
 }
 
 export interface LabQuestion {
@@ -22,6 +23,7 @@ export interface LabQuestion {
   prefix: string;
   questionText: string;
   screenshotUrl: string | null;
+  codeSnippet?: string;
   type?: 'question' | 'subheading';
 }
 
@@ -39,6 +41,7 @@ export interface LabState {
   editQuestionPrefix: (id: string, newPrefix: string) => void;
   attachScreenshot: (id: string, file: Blob) => void;
   removeScreenshot: (id: string) => void;
+  updateCodeSnippet: (id: string, code: string) => void;
   pdfFile: File | null;
   setPdfFile: (file: File | null) => void;
   resetWorkspace: () => void;
@@ -77,6 +80,7 @@ const defaultMetadata: LabMetadata = {
   dateOfSubmission: "",
   coordinatorName: "",
   logoUrl: null,
+  fontFamily: 'Helvetica',
 };
 
 export const useLabStore = create<LabState>((set, get) => ({
@@ -126,6 +130,7 @@ export const useLabStore = create<LabState>((set, get) => ({
         prefix: q.prefix || String(q.order) + ".",
         questionText: q.questionText,
         screenshotUrl: q.imageBlob ? URL.createObjectURL(q.imageBlob) : null,
+        codeSnippet: q.codeSnippet,
         type: q.type || 'question',
       }));
 
@@ -214,9 +219,10 @@ export const useLabStore = create<LabState>((set, get) => ({
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
-        prefix: 'Q',
+        prefix: '',
         questionText: '',
         screenshotUrl: null,
+        codeSnippet: undefined,
         type: 'question',
       };
 
@@ -226,6 +232,7 @@ export const useLabStore = create<LabState>((set, get) => ({
         prefix: newQuestion.prefix,
         questionText: newQuestion.questionText,
         imageBlob: null,
+        codeSnippet: undefined,
         type: 'question',
       };
 
@@ -245,6 +252,7 @@ export const useLabStore = create<LabState>((set, get) => ({
         prefix: '',
         questionText: 'New Section',
         screenshotUrl: null,
+        codeSnippet: undefined,
         type: 'subheading',
       };
 
@@ -254,6 +262,7 @@ export const useLabStore = create<LabState>((set, get) => ({
         prefix: newQuestion.prefix,
         questionText: newQuestion.questionText,
         imageBlob: null,
+        codeSnippet: undefined,
         type: 'subheading',
       };
 
@@ -392,6 +401,18 @@ export const useLabStore = create<LabState>((set, get) => ({
           }
           return q;
         }),
+      };
+    });
+  },
+
+  updateCodeSnippet: (id, code) => {
+    set((state) => {
+      db.questions.update(id, { codeSnippet: code }).catch(console.error);
+
+      return {
+        questions: state.questions.map((q) =>
+          q.id === id ? { ...q, codeSnippet: code } : q
+        ),
       };
     });
   },

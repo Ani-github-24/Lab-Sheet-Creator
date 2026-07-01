@@ -7,6 +7,7 @@ export interface DBQuestion {
   prefix: string;
   questionText: string;
   imageBlob: Blob | null;
+  codeSnippet?: string;
   type?: 'question' | 'subheading';
 }
 

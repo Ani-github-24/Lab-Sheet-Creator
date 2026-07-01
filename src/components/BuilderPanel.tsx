@@ -9,6 +9,7 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
   const removeScreenshot = useLabStore((state) => state.removeScreenshot);
   const editQuestionText = useLabStore((state) => state.editQuestionText);
   const editQuestionPrefix = useLabStore((state) => state.editQuestionPrefix);
+  const updateCodeSnippet = useLabStore((state) => state.updateCodeSnippet);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(q.questionText);
@@ -16,6 +17,13 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
 
   const handlePaste = (e: ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
+    
+    const text = e.clipboardData.getData('text');
+    if (text) {
+      updateCodeSnippet(q.id, text);
+      return;
+    }
+
     const items = e.clipboardData.items;
 
     for (let i = 0; i < items.length; i++) {
@@ -29,7 +37,7 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
     }
   };
 
-  // Edit logic is now handled directly via onMouseLeave on the container
+  // Edit logic is handled via onClick on the container and onBlur on the textarea
 
   return (
     <Draggable draggableId={q.id} index={index}>
@@ -57,29 +65,29 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
             />
           )}
           <div 
-            onMouseEnter={() => setIsEditing(true)}
-            onMouseLeave={() => {
-              editQuestionText(q.id, editText);
-              setIsEditing(false);
-            }}
-            className="w-full"
+            onClick={() => !isEditing && setIsEditing(true)}
+            className={`w-full ${!isEditing ? 'hover:bg-gray-100 cursor-text rounded transition-colors' : ''}`}
           >
             {isEditing ? (
               <textarea
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
+                onBlur={() => {
+                  editQuestionText(q.id, editText);
+                  setIsEditing(false);
+                }}
                 className={`w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y mt-2 ${isSubheading ? 'font-bold min-h-[60px]' : 'min-h-[100px]'}`}
                 autoFocus
               />
             ) : (
-              <div className={`text-gray-700 leading-relaxed cursor-text min-h-[1.5em] p-1 border border-transparent hover:border-gray-200 rounded transition-colors ${isSubheading ? 'font-extrabold text-xl block w-full border-b-2 border-indigo-200 pb-2 mb-2' : ''}`}>
-                {q.questionText || <span className="text-gray-400 italic">Hover to edit</span>}
+              <div className={`text-gray-700 leading-relaxed min-h-[1.5em] p-1 border border-transparent hover:border-gray-200 rounded transition-colors ${isSubheading ? 'font-extrabold text-xl block w-full border-b-2 border-indigo-200 pb-2 mb-2' : ''}`}>
+                {q.questionText || <span className="text-gray-400 italic">Click to edit</span>}
               </div>
             )}
           </div>
         </div>
         <div className="flex flex-col gap-2 flex-shrink-0">
-          {/* Edit button removed in favor of hover-to-edit */}
+          {/* Edit button removed in favor of click-to-edit */}
           <button
             onClick={() => removeQuestion(q.id)}
             className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors text-center w-full"
@@ -91,40 +99,60 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
       </div>
 
       {!isSubheading && (
-        <div className="mt-2">
-          {!q.screenshotUrl ? (
-          <div
-            tabIndex={0}
-            onPaste={handlePaste}
-            className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center text-gray-500 hover:border-indigo-400 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer outline-none"
-          >
-            <p className="font-medium">
-              Click here to focus, then press{' '}
-              <kbd className="bg-gray-100 border border-gray-200 text-gray-700 rounded-md px-2 py-1 font-mono text-sm shadow-sm mx-1">
-                Ctrl+V
-              </kbd>{' '}
-              to paste your terminal screenshot
-            </p>
-          </div>
-        ) : (
-          <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-            <img
-              src={q.screenshotUrl}
-
-              alt={`Screenshot for Question ${q.prefix}`}
-              className="w-full h-auto object-contain block"
-            />
-            <div className="absolute inset-0 bg-gray-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-              <button
-                onClick={() => removeScreenshot(q.id)}
-                className="bg-white text-red-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-red-50 transition-colors shadow-lg transform hover:scale-105 active:scale-95"
-              >
-                Remove Screenshot
-              </button>
+        <div className="mt-2 flex flex-col gap-4">
+          {(!q.screenshotUrl && !q.codeSnippet) && (
+            <div
+              tabIndex={0}
+              onPaste={handlePaste}
+              className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center text-gray-500 hover:border-indigo-400 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer outline-none"
+            >
+              <p className="font-medium">
+                Click here to focus, then press{' '}
+                <kbd className="bg-gray-100 border border-gray-200 text-gray-700 rounded-md px-2 py-1 font-mono text-sm shadow-sm mx-1">
+                  Ctrl+V
+                </kbd>{' '}
+                to paste your terminal screenshot or code snippet
+              </p>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+
+          {q.codeSnippet && (
+            <div className="relative group rounded-xl overflow-hidden border border-gray-800 bg-[#1e1e1e]">
+              <textarea
+                value={q.codeSnippet}
+                onChange={(e) => updateCodeSnippet(q.id, e.target.value)}
+                className="w-full h-auto min-h-[150px] bg-transparent text-[#d4d4d4] p-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                spellCheck={false}
+              />
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button
+                  onClick={() => updateCodeSnippet(q.id, '')}
+                  className="bg-gray-700 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-600 transition-colors shadow-sm"
+                >
+                  Clear Code
+                </button>
+              </div>
+            </div>
+          )}
+
+          {q.screenshotUrl && (
+            <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+              <img
+                src={q.screenshotUrl}
+                alt={`Screenshot for Question ${q.prefix}`}
+                className="w-full h-auto object-contain block"
+              />
+              <div className="absolute inset-0 bg-gray-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                <button
+                  onClick={() => removeScreenshot(q.id)}
+                  className="bg-white text-red-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-red-50 transition-colors shadow-lg transform hover:scale-105 active:scale-95"
+                >
+                  Remove Screenshot
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
         </div>
       )}

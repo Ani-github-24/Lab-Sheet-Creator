@@ -80,6 +80,19 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
             )}
           </div>
 
+          <div className="mb-6 flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Document Font</label>
+            <select
+              value={metadata.fontFamily || 'Helvetica'}
+              onChange={(e) => updateMetadata({ fontFamily: e.target.value as any })}
+              className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+            >
+              <option value="Helvetica">Helvetica (Standard Sans-Serif)</option>
+              <option value="Times-Roman">Times-Roman (Formal Serif)</option>
+              <option value="Courier">Courier (Monospace)</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             {metadataFields.map((field) => {
               if (field.key === 'logoUrl') return null;
