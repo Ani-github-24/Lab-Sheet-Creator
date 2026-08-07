@@ -15,10 +15,51 @@ function App() {
   const resetWorkspace = useLabStore((state) => state.resetWorkspace);
   const isSetupComplete = useLabStore((state) => state.isSetupComplete);
   const completeSetup = useLabStore((state) => state.completeSetup);
+  const undo = useLabStore((state) => state.undo);
 
   useEffect(() => {
     initializeStore();
   }, [initializeStore]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        // Prevent default only if not in an input/textarea to avoid blocking normal typing undo?
+        // Actually, simple global undo is fine for this requirement, but let's be careful.
+        // Actually, user explicitly asked for "global keydown event listener. If the user presses Ctrl + Z ... trigger the Zustand undo() action."
+        undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo]);
+
+  const handleDownloadBackup = () => {
+    let content = `Lab ${metadata.labNumber}: ${metadata.title}\n`;
+    content += `Course: ${metadata.courseCode} - ${metadata.courseTitle}\n`;
+    content += `Student: ${metadata.studentName} (${metadata.rollNumber})\n\n`;
+    content += `--- QUESTIONS ---\n\n`;
+
+    questions.forEach(q => {
+      if (q.type === 'subheading') {
+        content += `\n[ ${q.questionText} ]\n`;
+      } else {
+        content += `${q.prefix} ${q.questionText}\n`;
+        if (q.codeSnippet) {
+          content += `\n\`\`\`\n${q.codeSnippet}\n\`\`\`\n`;
+        }
+      }
+      content += '\n';
+    });
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Lab_${metadata.labNumber}_${metadata.courseCode}_Backup.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (!isInitialized) {
     return <div className="flex h-screen w-full items-center justify-center bg-gray-50 text-indigo-600 font-bold text-xl">Loading Lab Sheet...</div>;
@@ -76,9 +117,25 @@ function App() {
               Clear Workspace
             </button>
 
+            <button
+              onClick={handleDownloadBackup}
+              disabled={questions.length === 0}
+              className={`flex items-center gap-2 px-5 py-2 rounded-xl font-bold border transition-all text-sm
+                ${questions.length === 0
+                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900 shadow-sm active:scale-95'
+                }`}
+              title="Download text backup if PDF engine fails"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Download Backup (Plain Text)
+            </button>
+
             <PDFDownloadLink
               document={<LabDocument metadata={metadata} questions={questions} />}
-              fileName={`Lab_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`}
+              fileName={`Lab_${metadata.labNumber}_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`}
             >
               {({ loading }) => (
                 <button
