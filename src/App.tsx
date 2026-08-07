@@ -35,29 +35,71 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo]);
 
-  const handleDownloadBackup = () => {
-    let content = `Lab ${metadata.labNumber}: ${metadata.title}\n`;
-    content += `Course: ${metadata.courseCode} - ${metadata.courseTitle}\n`;
-    content += `Student: ${metadata.studentName} (${metadata.rollNumber})\n\n`;
-    content += `--- QUESTIONS ---\n\n`;
+  const blobUrlToBase64 = async (blobUrl: string): Promise<string> => {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
 
-    questions.forEach(q => {
+  const generateHtmlBackup = async () => {
+    let htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Backup - ${metadata.labNumber}</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }
+  pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+  img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; margin: 1rem 0; }
+  h1 { border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+  h2 { margin-top: 2rem; }
+</style>
+</head>
+<body>
+  <h1>${metadata.title} (Lab ${metadata.labNumber})</h1>
+  <ul>
+    <li><strong>Course:</strong> ${metadata.courseCode} - ${metadata.courseTitle}</li>
+    <li><strong>Student:</strong> ${metadata.studentName} (${metadata.rollNumber})</li>
+    <li><strong>Batch/Semester:</strong> ${metadata.batch} / ${metadata.semester}</li>
+  </ul>
+  <hr />
+`;
+
+    for (const q of questions) {
       if (q.type === 'subheading') {
-        content += `\n[ ${q.questionText} ]\n`;
+        htmlContent += `\n<h2>${q.questionText}</h2>\n`;
       } else {
-        content += `${q.prefix} ${q.questionText}\n`;
+        htmlContent += `\n<p><strong>${q.prefix}</strong> ${q.questionText}</p>\n`;
         if (q.codeSnippet) {
-          content += `\n\`\`\`\n${q.codeSnippet}\n\`\`\`\n`;
+          htmlContent += `<pre><code>${q.codeSnippet.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>\n`;
+        }
+        if (q.screenshotUrl) {
+          try {
+            const base64Img = await blobUrlToBase64(q.screenshotUrl);
+            htmlContent += `<img src="${base64Img}" alt="Screenshot for ${q.prefix}" />\n`;
+          } catch (e) {
+            console.error("Failed to convert image for backup", e);
+            htmlContent += `<p><em>[Image failed to load in backup]</em></p>\n`;
+          }
         }
       }
-      content += '\n';
-    });
+    }
 
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    htmlContent += `
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Lab_${metadata.labNumber}_${metadata.courseCode}_Backup.txt`;
+    a.download = `Backup_${metadata.labNumber}_${metadata.courseCode}.html`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -119,7 +161,7 @@ function App() {
             </button>
 
             <button
-              onClick={handleDownloadBackup}
+              onClick={generateHtmlBackup}
               disabled={questions.length === 0}
               className={`flex items-center gap-2 px-5 py-2 rounded-xl font-bold border transition-all text-sm
                 ${questions.length === 0
@@ -221,7 +263,7 @@ function App() {
               
               <button
                 onClick={() => {
-                  handleDownloadBackup();
+                  generateHtmlBackup();
                   setShowFeedbackDialog(false);
                 }}
                 className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
