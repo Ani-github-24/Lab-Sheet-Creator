@@ -8,6 +8,7 @@ import { useLabStore } from './store';
 
 function App() {
   const [hasDownloaded, setHasDownloaded] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const questions = useLabStore((state) => state.questions);
   const metadata = useLabStore((state) => state.metadata);
   const initializeStore = useLabStore((state) => state.initializeStore);
@@ -139,7 +140,10 @@ function App() {
             >
               {({ loading }) => (
                 <button
-                  onClick={() => setHasDownloaded(true)}
+                  onClick={() => {
+                    setHasDownloaded(true);
+                    setTimeout(() => setShowFeedbackDialog(true), 500);
+                  }}
                   disabled={loading || questions.length === 0}
                   className={`flex items-center gap-2 px-5 py-2 rounded-xl font-bold text-white shadow-sm transition-all text-sm
                   ${loading || questions.length === 0
@@ -197,7 +201,46 @@ function App() {
           <BuilderPanel />
         </div>
       </div>
-    </div >
+
+      {/* Post-Download Feedback Dialog */}
+      {showFeedbackDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-6">
+            <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">Was the PDF formatted correctly?</h3>
+            <p className="text-gray-500 text-sm">
+              Sometimes complex layouts or very large code blocks can cause the PDF engine to glitch.
+            </p>
+            
+            <div className="flex flex-col gap-3 mt-4">
+              <button
+                onClick={() => setShowFeedbackDialog(false)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95"
+              >
+                Yes (Looks Good)
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleDownloadBackup();
+                  setShowFeedbackDialog(false);
+                }}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                Download Backup
+              </button>
+
+              <button
+                onClick={() => setShowFeedbackDialog(false)}
+                className="w-full bg-transparent hover:bg-gray-50 text-gray-600 font-bold py-3 px-4 rounded-xl border border-gray-200 transition-all active:scale-95"
+              >
+                Try Again (Adjust layout)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
