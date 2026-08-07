@@ -2,6 +2,7 @@ import React, { useState, ChangeEvent } from 'react';
 import { useLabStore, LabMetadata } from '../store';
 
 const metadataFields: { key: keyof LabMetadata; label: string; placeholder: string }[] = [
+  { key: 'labNumber', label: 'Lab Number', placeholder: 'e.g., 1' },
   { key: 'title', label: 'Lab Title', placeholder: 'e.g., Lab 1: Linux Basics' },
   { key: 'assignmentType', label: 'Assignment Type', placeholder: 'e.g., ASSIGNMENT' },
   { key: 'courseCode', label: 'Course Code', placeholder: 'e.g., CS201' },

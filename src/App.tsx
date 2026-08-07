@@ -8,6 +8,7 @@ import { useLabStore } from './store';
 
 function App() {
   const [hasDownloaded, setHasDownloaded] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const questions = useLabStore((state) => state.questions);
   const metadata = useLabStore((state) => state.metadata);
   const initializeStore = useLabStore((state) => state.initializeStore);
@@ -15,10 +16,93 @@ function App() {
   const resetWorkspace = useLabStore((state) => state.resetWorkspace);
   const isSetupComplete = useLabStore((state) => state.isSetupComplete);
   const completeSetup = useLabStore((state) => state.completeSetup);
+  const undo = useLabStore((state) => state.undo);
 
   useEffect(() => {
     initializeStore();
   }, [initializeStore]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        // Prevent default only if not in an input/textarea to avoid blocking normal typing undo?
+        // Actually, simple global undo is fine for this requirement, but let's be careful.
+        // Actually, user explicitly asked for "global keydown event listener. If the user presses Ctrl + Z ... trigger the Zustand undo() action."
+        undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo]);
+
+  const blobUrlToBase64 = async (blobUrl: string): Promise<string> => {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const generateHtmlBackup = async () => {
+    let htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab Backup - ${metadata.labNumber}</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }
+  pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+  img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; margin: 1rem 0; }
+  h1 { border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+  h2 { margin-top: 2rem; }
+</style>
+</head>
+<body>
+  <h1>${metadata.title} (Lab ${metadata.labNumber})</h1>
+  <ul>
+    <li><strong>Course:</strong> ${metadata.courseCode} - ${metadata.courseTitle}</li>
+    <li><strong>Student:</strong> ${metadata.studentName} (${metadata.rollNumber})</li>
+    <li><strong>Batch/Semester:</strong> ${metadata.batch} / ${metadata.semester}</li>
+  </ul>
+  <hr />
+`;
+
+    for (const q of questions) {
+      if (q.type === 'subheading') {
+        htmlContent += `\n<h2>${q.questionText}</h2>\n`;
+      } else {
+        htmlContent += `\n<p><strong>${q.prefix}</strong> ${q.questionText}</p>\n`;
+        if (q.codeSnippet) {
+          htmlContent += `<pre><code>${q.codeSnippet.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>\n`;
+        }
+        if (q.screenshotUrl) {
+          try {
+            const base64Img = await blobUrlToBase64(q.screenshotUrl);
+            htmlContent += `<img src="${base64Img}" alt="Screenshot for ${q.prefix}" />\n`;
+          } catch (e) {
+            console.error("Failed to convert image for backup", e);
+            htmlContent += `<p><em>[Image failed to load in backup]</em></p>\n`;
+          }
+        }
+      }
+    }
+
+    htmlContent += `
+</body>
+</html>`;
+
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Backup_${metadata.labNumber}_${metadata.courseCode}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (!isInitialized) {
     return <div className="flex h-screen w-full items-center justify-center bg-gray-50 text-indigo-600 font-bold text-xl">Loading Lab Sheet...</div>;
@@ -76,13 +160,32 @@ function App() {
               Clear Workspace
             </button>
 
+            <button
+              onClick={generateHtmlBackup}
+              disabled={questions.length === 0}
+              className={`flex items-center gap-2 px-5 py-2 rounded-xl font-bold border transition-all text-sm
+                ${questions.length === 0
+                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900 shadow-sm active:scale-95'
+                }`}
+              title="Download text backup if PDF engine fails"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Download Backup (Plain Text)
+            </button>
+
             <PDFDownloadLink
               document={<LabDocument metadata={metadata} questions={questions} />}
-              fileName={`Lab_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`}
+              fileName={`Lab_${metadata.labNumber}_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`}
             >
               {({ loading }) => (
                 <button
-                  onClick={() => setHasDownloaded(true)}
+                  onClick={() => {
+                    setHasDownloaded(true);
+                    setTimeout(() => setShowFeedbackDialog(true), 500);
+                  }}
                   disabled={loading || questions.length === 0}
                   className={`flex items-center gap-2 px-5 py-2 rounded-xl font-bold text-white shadow-sm transition-all text-sm
                   ${loading || questions.length === 0
@@ -140,7 +243,46 @@ function App() {
           <BuilderPanel />
         </div>
       </div>
-    </div >
+
+      {/* Post-Download Feedback Dialog */}
+      {showFeedbackDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-6">
+            <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">Was the PDF formatted correctly?</h3>
+            <p className="text-gray-500 text-sm">
+              Sometimes complex layouts or very large code blocks can cause the PDF engine to glitch.
+            </p>
+            
+            <div className="flex flex-col gap-3 mt-4">
+              <button
+                onClick={() => setShowFeedbackDialog(false)}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95"
+              >
+                Yes (Looks Good)
+              </button>
+              
+              <button
+                onClick={() => {
+                  generateHtmlBackup();
+                  setShowFeedbackDialog(false);
+                }}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                Download Backup
+              </button>
+
+              <button
+                onClick={() => setShowFeedbackDialog(false)}
+                className="w-full bg-transparent hover:bg-gray-50 text-gray-600 font-bold py-3 px-4 rounded-xl border border-gray-200 transition-all active:scale-95"
+              >
+                Try Again (Adjust layout)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

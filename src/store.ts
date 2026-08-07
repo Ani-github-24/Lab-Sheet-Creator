@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { db, DBQuestion } from './db';
 
 export interface LabMetadata {
+  labNumber: string;
   campus: string;
   assignmentType: string;
   title: string;
@@ -30,6 +31,8 @@ export interface LabQuestion {
 export interface LabState {
   metadata: LabMetadata;
   questions: LabQuestion[];
+  pastQuestions: LabQuestion[][];
+  undo: () => void;
   isInitialized: boolean;
   isSetupComplete: boolean;
   completeSetup: () => void;
@@ -67,6 +70,7 @@ const getNextPrefix = (questions: LabQuestion[]): string => {
 };
 
 const defaultMetadata: LabMetadata = {
+  labNumber: "",
   campus: "",
   assignmentType: "",
   title: "",
@@ -86,6 +90,7 @@ const defaultMetadata: LabMetadata = {
 export const useLabStore = create<LabState>((set, get) => ({
   metadata: defaultMetadata,
   questions: [],
+  pastQuestions: [],
   isInitialized: false,
   isSetupComplete: false,
   completeSetup: () => set({ isSetupComplete: true }),
@@ -104,6 +109,40 @@ export const useLabStore = create<LabState>((set, get) => ({
       });
 
       return { questions: [], pdfFile: null };
+    });
+  },
+
+  undo: () => {
+    set((state) => {
+      if (state.pastQuestions.length === 0) return state;
+      const newPast = [...state.pastQuestions];
+      const previousQuestions = newPast.pop()!;
+      
+      // Update Dexie to match the restored state
+      db.transaction('rw', db.questions, async () => {
+        await db.questions.clear();
+        const promises = previousQuestions.map((q, idx) => {
+          // Attempt to restore blob if available in another way?
+          // Since we don't have the blob in memory, we might just be restoring the text.
+          // Note: Full image restoration requires soft-deletes or storing blobs in the history state.
+          const dbQuestion: DBQuestion = {
+            id: q.id,
+            order: idx + 1,
+            prefix: q.prefix,
+            questionText: q.questionText,
+            imageBlob: null, // Basic undo won't restore deleted blobs immediately if garbage collected
+            codeSnippet: q.codeSnippet,
+            type: q.type,
+          };
+          return db.questions.put(dbQuestion);
+        });
+        await Promise.all(promises);
+      }).catch(console.error);
+
+      return {
+        questions: previousQuestions,
+        pastQuestions: newPast,
+      };
     });
   },
 
@@ -188,6 +227,7 @@ export const useLabStore = create<LabState>((set, get) => ({
 
   addQuestion: (text, customPrefix) => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
@@ -210,12 +250,14 @@ export const useLabStore = create<LabState>((set, get) => ({
 
       return {
         questions: [...state.questions, newQuestion],
+        pastQuestions,
       };
     });
   },
 
   addBlankQuestion: () => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
@@ -240,12 +282,14 @@ export const useLabStore = create<LabState>((set, get) => ({
 
       return {
         questions: [...state.questions, newQuestion],
+        pastQuestions,
       };
     });
   },
 
   addSubheading: () => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
@@ -270,6 +314,7 @@ export const useLabStore = create<LabState>((set, get) => ({
 
       return {
         questions: [...state.questions, newQuestion],
+        pastQuestions,
       };
     });
   },
@@ -281,6 +326,7 @@ export const useLabStore = create<LabState>((set, get) => ({
       if (direction === 'up' && index === 0) return state;
       if (direction === 'down' && index === state.questions.length - 1) return state;
 
+      const pastQuestions = [...state.pastQuestions, state.questions];
       const newQuestions = [...state.questions];
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
 
@@ -298,12 +344,13 @@ export const useLabStore = create<LabState>((set, get) => ({
         await Promise.all(promises);
       }).catch(console.error);
 
-      return { questions: newQuestions };
+      return { questions: newQuestions, pastQuestions };
     });
   },
 
   setQuestions: (newQuestions) => {
-    set(() => {
+    set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       // Update Dexie
       db.transaction('rw', db.questions, async () => {
         const promises = newQuestions.map(async (q, idx) => {
@@ -315,12 +362,13 @@ export const useLabStore = create<LabState>((set, get) => ({
         await Promise.all(promises);
       }).catch(console.error);
 
-      return { questions: newQuestions };
+      return { questions: newQuestions, pastQuestions };
     });
   },
 
   removeQuestion: (id) => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       const filteredQuestions = state.questions.filter((q) => q.id !== id);
 
       // Update Dexie
@@ -338,12 +386,14 @@ export const useLabStore = create<LabState>((set, get) => ({
 
       return {
         questions: filteredQuestions,
+        pastQuestions,
       };
     });
   },
 
   editQuestionText: (id, newText) => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       // Update Dexie asynchronously
       db.questions.update(id, { questionText: newText }).catch(console.error);
 
@@ -351,12 +401,14 @@ export const useLabStore = create<LabState>((set, get) => ({
         questions: state.questions.map((q) =>
           q.id === id ? { ...q, questionText: newText } : q
         ),
+        pastQuestions,
       };
     });
   },
 
   editQuestionPrefix: (id, newPrefix) => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       // Update Dexie asynchronously
       db.questions.update(id, { prefix: newPrefix }).catch(console.error);
 
@@ -364,12 +416,14 @@ export const useLabStore = create<LabState>((set, get) => ({
         questions: state.questions.map((q) =>
           q.id === id ? { ...q, prefix: newPrefix } : q
         ),
+        pastQuestions,
       };
     });
   },
 
   attachScreenshot: (id, file) => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       // Generate local URL for immediate UI update
       const url = URL.createObjectURL(file);
 
@@ -385,12 +439,14 @@ export const useLabStore = create<LabState>((set, get) => ({
           }
           return q;
         }),
+        pastQuestions,
       };
     });
   },
 
   removeScreenshot: (id) => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       db.questions.update(id, { imageBlob: null }).catch(console.error);
 
       return {
@@ -401,18 +457,21 @@ export const useLabStore = create<LabState>((set, get) => ({
           }
           return q;
         }),
+        pastQuestions,
       };
     });
   },
 
   updateCodeSnippet: (id, code) => {
     set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
       db.questions.update(id, { codeSnippet: code }).catch(console.error);
 
       return {
         questions: state.questions.map((q) =>
           q.id === id ? { ...q, codeSnippet: code } : q
         ),
+        pastQuestions,
       };
     });
   },

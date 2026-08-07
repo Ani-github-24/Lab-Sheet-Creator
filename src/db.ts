@@ -41,6 +41,11 @@ export class LabDatabase extends Dexie {
       // Clear metadata because the schema changed significantly
       return tx.table('metadata').clear();
     });
+
+    this.version(4).stores({
+      metadata: 'id',
+      questions: 'id, order',
+    });
   }
 }
 
