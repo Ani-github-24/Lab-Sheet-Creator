@@ -2,6 +2,15 @@
 
 **A local-first, zero-friction document compiler designed to automate the creation of university lab records.**
 
+
+Auto formatted front page.
+
+<img width="600" height="847" alt="image" src="https://github.com/user-attachments/assets/ab96aec2-6d72-45f0-8fe9-78c963b0492e" />
+
+All pages are bordered and the images are auto adjusted, headings, question numbers and question can be added easily.
+<img width="595" height="857" alt="image" src="https://github.com/user-attachments/assets/38bc2402-c3b9-4181-bad1-e0e939b5dd49" />
+
+
 ## The Problem
 
 Computer Science students spend hours every semester manually copying questions from lab sheet PDFs, taking terminal screenshots, and fighting with Microsoft Word formatting (especially erratic page breaks) to compile their submission records. It is a tedious, purely administrative task that consumes valuable time.
