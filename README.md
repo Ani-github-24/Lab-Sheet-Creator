@@ -45,12 +45,18 @@ Instead of taking the standard "Print to PDF" approach (which converts the HTML 
 1. **The Interactive Web DOM** — For the drag-and-drop user workspace.
 2. **A Hidden, Declarative `<Document>` Tree** — Programs the physical A4 layout using strict `wrap={false}` constraints to guarantee unsplittable content blocks and precise alignment.
 
-## Running Locally
+
+## ⚠️ Important Note
+
+* For the best experience, **make sure your browser is not configured to automatically delete cookies or site data**.
+* If you are using a **guest/private computer or browser profile**, your locally saved data may not persist after the session ends.
+* Since the application stores your work **locally** in the browser, make sure to download and save the file.
+
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/lab-sheet-creator.git
+git clone https://github.com/Ani-github-24/lab-sheet-creator.git
 ```
 
 ### 2. Install Dependencies
@@ -66,15 +72,6 @@ npm install
 npm run dev
 ```
 
-## 🌐 Live Deployment
-
-This project is fully static and can be hosted for free on GitHub Pages or Vercel.
-
-To deploy via GitHub Pages:
-
-```bash
-npm run deploy
-```
 
 ## 📌 Future Improvements
 
