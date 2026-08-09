@@ -12,6 +12,11 @@ All pages are bordered and the images are auto adjusted, headings, question numb
 <img width="595" height="857" alt="image" src="https://github.com/user-attachments/assets/38bc2402-c3b9-4181-bad1-e0e939b5dd49" />
 
 
+
+https://github.com/user-attachments/assets/41239915-63a3-4332-8973-50e26cfd5ed3
+
+
+
 ## The Problem
 
 Computer Science students spend hours every semester manually copying questions from lab sheet PDFs, taking terminal screenshots, and fighting with Microsoft Word formatting (especially erratic page breaks) to compile their submission records. It is a tedious, purely administrative task that consumes valuable time.
@@ -52,6 +57,7 @@ Instead of taking the standard "Print to PDF" approach (which converts the HTML 
 * If you are using a **guest/private computer or browser profile**, your locally saved data may not persist after the session ends.
 * Since the application stores your work **locally** in the browser, make sure to download and save the file.
 
+## Run Locally
 
 ### 1. Clone the Repository
 
