@@ -16,9 +16,17 @@ export interface DBMetadata extends LabMetadata {
   logoBlob?: Blob | null;
 }
 
+export interface DBCoursePreset {
+  id: string;
+  title: string;
+  code: string;
+  faculty: string;
+}
+
 export class LabDatabase extends Dexie {
   metadata!: Table<DBMetadata>;
   questions!: Table<DBQuestion>;
+  coursePresets!: Table<DBCoursePreset>;
 
   constructor() {
     super('LabDatabase');
@@ -46,7 +54,14 @@ export class LabDatabase extends Dexie {
       metadata: 'id',
       questions: 'id, order',
     });
+
+    this.version(5).stores({
+      metadata: 'id',
+      questions: 'id, order',
+      coursePresets: 'id',
+    });
   }
 }
 
 export const db = new LabDatabase();
+

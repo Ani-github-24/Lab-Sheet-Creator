@@ -1,17 +1,8 @@
-import React, { useState, ChangeEvent } from 'react';
-import { useLabStore, LabMetadata } from '../store';
+import React, { useState, useEffect, useCallback, ChangeEvent } from 'react';
+import { useLabStore, LabMetadata, CoursePreset } from '../store';
 
-interface CoursePreset {
-  id: string;
-  title: string;
-  code: string;
-  faculty: string;
-}
-
-const COURSE_PRESETS: CoursePreset[] = [
+const BUILT_IN_PRESETS: CoursePreset[] = [
   { id: 'custom', title: '-- Custom / Type Manually --', code: '', faculty: '' },
-  { id: 'cs201', title: 'Data Structures and Algorithms', code: 'CSE201', faculty: 'Dr. Smith' },
-  { id: 'cs202', title: 'Database Management Systems', code: 'CSE202', faculty: 'Prof. Johnson' },
 ];
 
 const metadataFields: { key: keyof LabMetadata; label: string; placeholder: string }[] = [
@@ -39,8 +30,23 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
   const updateMetadata = useLabStore((state) => state.updateMetadata);
   const updateLogo = useLabStore((state) => state.updateLogo);
   const resetLogo = useLabStore((state) => state.resetLogo);
+  const customCoursePresets = useLabStore((state) => state.customCoursePresets);
+  const saveCoursePreset = useLabStore((state) => state.saveCoursePreset);
+  const deleteCoursePreset = useLabStore((state) => state.deleteCoursePreset);
+
   const [isOpen, setIsOpen] = useState(initiallyOpen);
   const [selectedPreset, setSelectedPreset] = useState('custom');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle');
+
+  // Merge built-in and custom presets into a single lookup
+  const allPresets = [...BUILT_IN_PRESETS, ...customCoursePresets];
+
+  // Clear the "Saved!" feedback after 2 seconds
+  useEffect(() => {
+    if (saveStatus !== 'saved') return;
+    const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+    return () => clearTimeout(timer);
+  }, [saveStatus]);
 
   const handlePresetChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const presetId = e.target.value;
@@ -48,7 +54,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
 
     if (presetId === 'custom') return;
 
-    const preset = COURSE_PRESETS.find((p) => p.id === presetId);
+    const preset = allPresets.find((p) => p.id === presetId);
     if (preset) {
       updateMetadata({
         courseTitle: preset.title,
@@ -58,12 +64,24 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
     }
   };
 
+  const handleSavePreset = useCallback(() => {
+    if (!metadata.courseTitle.trim()) return;
+    saveCoursePreset({
+      title: metadata.courseTitle,
+      code: metadata.courseCode,
+      faculty: metadata.coordinatorName,
+    });
+    setSaveStatus('saved');
+  }, [metadata.courseTitle, metadata.courseCode, metadata.coordinatorName, saveCoursePreset]);
+
   const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
       updateLogo(file);
     }
   };
+
+  const canSave = metadata.courseTitle.trim().length > 0;
 
   return (
     <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden mb-6 transition-all">
@@ -131,13 +149,40 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
               onChange={handlePresetChange}
               className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
             >
-              {COURSE_PRESETS.map((preset) => (
-                <option key={preset.id} value={preset.id}>
-                  {preset.title}
-                </option>
-              ))}
+              <optgroup label="Built-in Courses">
+                {BUILT_IN_PRESETS.map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.title}
+                  </option>
+                ))}
+              </optgroup>
+              {customCoursePresets.length > 0 && (
+                <optgroup label="Your Saved Courses">
+                  {customCoursePresets.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.title} ({preset.code})
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
             <p className="text-xs text-gray-500 mt-1">Select a course to auto-fill Course Title, Course Code, and Coordinator Name.</p>
+
+            {/* Delete button for the currently selected custom preset */}
+            {selectedPreset.startsWith('custom-') && (
+              <button
+                onClick={() => {
+                  deleteCoursePreset(selectedPreset);
+                  setSelectedPreset('custom');
+                }}
+                className="mt-1 self-start inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete this saved preset
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -157,6 +202,40 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
               );
             })}
           </div>
+
+          {/* Save as New Course Preset button */}
+          <div className="mt-5">
+            <button
+              onClick={handleSavePreset}
+              disabled={!canSave}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm ${
+                saveStatus === 'saved'
+                  ? 'bg-green-100 text-green-700 border border-green-300 cursor-default'
+                  : canSave
+                    ? 'bg-white text-indigo-600 border border-indigo-300 hover:bg-indigo-50 hover:border-indigo-400 cursor-pointer'
+                    : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+              }`}
+            >
+              {saveStatus === 'saved' ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Saved! ✓
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Save as New Course Preset
+                </>
+              )}
+            </button>
+            {!canSave && (
+              <p className="text-xs text-gray-400 mt-1">Enter a Course Title first to save a preset.</p>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -164,3 +243,4 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
 };
 
 export default FrontPageEditor;
+

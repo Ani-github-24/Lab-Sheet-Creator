@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { db, DBQuestion } from './db';
+import { db, DBQuestion, DBCoursePreset } from './db';
 
 export interface LabMetadata {
   labNumber: string;
@@ -28,6 +28,13 @@ export interface LabQuestion {
   type?: 'question' | 'subheading';
 }
 
+export interface CoursePreset {
+  id: string;
+  title: string;
+  code: string;
+  faculty: string;
+}
+
 export interface LabState {
   metadata: LabMetadata;
   questions: LabQuestion[];
@@ -54,6 +61,9 @@ export interface LabState {
   addSubheading: () => void;
   moveQuestion: (id: string, direction: 'up' | 'down') => void;
   setQuestions: (questions: LabQuestion[]) => void;
+  customCoursePresets: CoursePreset[];
+  saveCoursePreset: (preset: { title: string; code: string; faculty: string }) => void;
+  deleteCoursePreset: (id: string) => void;
 }
 
 const getNextPrefix = (questions: LabQuestion[]): string => {
@@ -91,6 +101,7 @@ export const useLabStore = create<LabState>((set, get) => ({
   metadata: defaultMetadata,
   questions: [],
   pastQuestions: [],
+  customCoursePresets: [],
   isInitialized: false,
   isSetupComplete: false,
   completeSetup: () => set({ isSetupComplete: true }),
@@ -173,9 +184,19 @@ export const useLabStore = create<LabState>((set, get) => ({
         type: q.type || 'question',
       }));
 
+      // Load custom course presets
+      const dbPresets = await db.coursePresets.toArray();
+      const initialPresets: CoursePreset[] = dbPresets.map((p) => ({
+        id: p.id,
+        title: p.title,
+        code: p.code,
+        faculty: p.faculty,
+      }));
+
       set({
         metadata: initialMetadata as LabMetadata,
         questions: initialQuestions,
+        customCoursePresets: initialPresets,
         isInitialized: true,
       });
     } catch (error) {
@@ -474,5 +495,25 @@ export const useLabStore = create<LabState>((set, get) => ({
         pastQuestions,
       };
     });
+  },
+
+  saveCoursePreset: (preset) => {
+    const id = `custom-${Date.now()}`;
+    const newPreset: CoursePreset = { id, ...preset };
+    const dbPreset: DBCoursePreset = { id, ...preset };
+
+    db.coursePresets.put(dbPreset).catch(console.error);
+
+    set((state) => ({
+      customCoursePresets: [...state.customCoursePresets, newPreset],
+    }));
+  },
+
+  deleteCoursePreset: (id) => {
+    db.coursePresets.delete(id).catch(console.error);
+
+    set((state) => ({
+      customCoursePresets: state.customCoursePresets.filter((p) => p.id !== id),
+    }));
   },
 }));
