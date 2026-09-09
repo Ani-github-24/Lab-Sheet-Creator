@@ -509,6 +509,12 @@ export const useLabStore = create<LabState>((set, get) => ({
   },
 
   saveCoursePreset: (preset) => {
+    const { customCoursePresets } = get();
+    const isDuplicate = customCoursePresets.some(
+      (p) => p.title === preset.title && p.code === preset.code && p.faculty === preset.faculty
+    );
+    if (isDuplicate) return;
+
     const id = `custom-${Date.now()}`;
     const newPreset: CoursePreset = { id, ...preset };
     const dbPreset: DBCoursePreset = { id, ...preset };

@@ -81,7 +81,10 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
     }
   };
 
-  const canSave = metadata.courseTitle.trim().length > 0;
+  const isDuplicate = customCoursePresets.some(
+    (p) => p.title === metadata.courseTitle && p.code === metadata.courseCode && p.faculty === metadata.coordinatorName
+  );
+  const canSave = metadata.courseTitle.trim().length > 0 && !isDuplicate;
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 transition-all">
@@ -232,8 +235,11 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
                 </>
               )}
             </button>
-            {!canSave && (
+            {!canSave && !isDuplicate && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enter a Course Title first to save a preset.</p>
+            )}
+            {isDuplicate && (
+              <p className="text-xs text-amber-500 dark:text-amber-400 mt-1">This course preset already exists.</p>
             )}
           </div>
         </div>
