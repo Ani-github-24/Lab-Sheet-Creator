@@ -81,17 +81,20 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
     }
   };
 
-  const canSave = metadata.courseTitle.trim().length > 0;
+  const isDuplicate = customCoursePresets.some(
+    (p) => p.title === metadata.courseTitle && p.code === metadata.courseCode && p.faculty === metadata.coordinatorName
+  );
+  const canSave = metadata.courseTitle.trim().length > 0 && !isDuplicate;
 
   return (
-    <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden mb-6 transition-all">
+    <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6 transition-all">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-6 bg-gray-50 hover:bg-gray-100 transition-colors focus:outline-none"
+        className="w-full flex items-center justify-between p-6 bg-gray-50 dark:bg-gray-800/80 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none"
       >
-        <h3 className="text-xl font-extrabold text-gray-800">Edit Cover Page Details</h3>
+        <h3 className="text-xl font-extrabold text-gray-800 dark:text-white">Edit Cover Page Details</h3>
         <svg
-          className={`w-6 h-6 text-gray-500 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-6 h-6 text-gray-500 dark:text-gray-400 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -101,11 +104,11 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
       </button>
 
       {isOpen && (
-        <div className="p-6 border-t border-gray-200 bg-white">
-          <div className="mb-8 p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-center gap-6">
+        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="mb-8 p-4 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 flex items-center gap-6">
             <div className="flex-1">
-              <h4 className="text-sm font-bold text-gray-800 mb-1">Custom University Logo</h4>
-              <p className="text-xs text-gray-500 mb-4">Upload a custom logo to replace the default asset. Will persist offline.</p>
+              <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-1">Custom University Logo</h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Upload a custom logo to replace the default asset. Will persist offline.</p>
 
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition-colors shadow-sm text-sm font-semibold">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,11 +120,11 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
             </div>
 
             {metadata.logoUrl && (
-              <div className="flex flex-col items-center gap-2 border-l border-gray-200 pl-6">
-                <img src={metadata.logoUrl} alt="Custom Logo" className="w-32 h-32 object-contain border border-gray-300 rounded-md bg-white p-1" />
+              <div className="flex flex-col items-center gap-2 border-l border-gray-200 dark:border-gray-600 pl-6">
+                <img src={metadata.logoUrl} alt="Custom Logo" className="w-32 h-32 object-contain border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 p-1" />
                 <button
                   onClick={resetLogo}
-                  className="text-xs text-red-500 hover:text-red-700 font-semibold underline"
+                  className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 font-semibold underline"
                 >
                   Reset to Default
                 </button>
@@ -130,11 +133,11 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
           </div>
 
           <div className="mb-6 flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">Document Font</label>
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Document Font</label>
             <select
               value={metadata.fontFamily || 'Helvetica'}
               onChange={(e) => updateMetadata({ fontFamily: e.target.value as any })}
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
             >
               <option value="Helvetica">Helvetica (Standard Sans-Serif)</option>
               <option value="Times-Roman">Times-Roman (Formal Serif)</option>
@@ -143,11 +146,11 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
           </div>
 
           <div className="mb-6 flex flex-col gap-1">
-            <label className="text-sm font-semibold text-gray-700">Quick-Fill Course</label>
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Quick-Fill Course</label>
             <select
               value={selectedPreset}
               onChange={handlePresetChange}
-              className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
             >
               <optgroup label="Built-in Courses">
                 {BUILT_IN_PRESETS.map((preset) => (
@@ -166,7 +169,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
                 </optgroup>
               )}
             </select>
-            <p className="text-xs text-gray-500 mt-1">Select a course to auto-fill Course Title, Course Code, and Coordinator Name.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select a course to auto-fill Course Title, Course Code, and Coordinator Name.</p>
 
             {/* Delete button for the currently selected custom preset */}
             {selectedPreset.startsWith('custom-') && (
@@ -175,7 +178,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
                   deleteCoursePreset(selectedPreset);
                   setSelectedPreset('custom');
                 }}
-                className="mt-1 self-start inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold transition-colors"
+                className="mt-1 self-start inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 font-semibold transition-colors"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -190,13 +193,13 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
               if (field.key === 'logoUrl') return null;
               return (
                 <div key={field.key} className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-gray-700">{field.label}</label>
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{field.label}</label>
                   <input
                     type="text"
                     value={metadata[field.key] as string}
                     onChange={(e) => updateMetadata({ [field.key]: e.target.value })}
                     placeholder={field.placeholder}
-                    className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   />
                 </div>
               );
@@ -210,10 +213,10 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
               disabled={!canSave}
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm ${
                 saveStatus === 'saved'
-                  ? 'bg-green-100 text-green-700 border border-green-300 cursor-default'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-700 cursor-default'
                   : canSave
-                    ? 'bg-white text-indigo-600 border border-indigo-300 hover:bg-indigo-50 hover:border-indigo-400 cursor-pointer'
-                    : 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                    ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:border-indigo-400 cursor-pointer'
+                    : 'bg-gray-100 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-600 cursor-not-allowed'
               }`}
             >
               {saveStatus === 'saved' ? (
@@ -232,8 +235,11 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
                 </>
               )}
             </button>
-            {!canSave && (
-              <p className="text-xs text-gray-400 mt-1">Enter a Course Title first to save a preset.</p>
+            {!canSave && !isDuplicate && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enter a Course Title first to save a preset.</p>
+            )}
+            {isDuplicate && (
+              <p className="text-xs text-amber-500 dark:text-amber-400 mt-1">This course preset already exists.</p>
             )}
           </div>
         </div>
@@ -243,4 +249,3 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
 };
 
 export default FrontPageEditor;
-
