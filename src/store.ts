@@ -64,6 +64,8 @@ export interface LabState {
   customCoursePresets: CoursePreset[];
   saveCoursePreset: (preset: { title: string; code: string; faculty: string }) => void;
   deleteCoursePreset: (id: string) => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 const getNextPrefix = (questions: LabQuestion[]): string => {
@@ -102,10 +104,19 @@ export const useLabStore = create<LabState>((set, get) => ({
   questions: [],
   pastQuestions: [],
   customCoursePresets: [],
+  isDarkMode: localStorage.getItem('labsheet-dark-mode') === 'true',
   isInitialized: false,
   isSetupComplete: false,
   completeSetup: () => set({ isSetupComplete: true }),
   pdfFile: null,
+
+  toggleDarkMode: () => {
+    set((state) => {
+      const next = !state.isDarkMode;
+      localStorage.setItem('labsheet-dark-mode', String(next));
+      return { isDarkMode: next };
+    });
+  },
 
   setPdfFile: (file) => set({ pdfFile: file }),
 
