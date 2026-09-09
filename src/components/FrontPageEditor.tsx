@@ -1,6 +1,19 @@
 import React, { useState, ChangeEvent } from 'react';
 import { useLabStore, LabMetadata } from '../store';
 
+interface CoursePreset {
+  id: string;
+  title: string;
+  code: string;
+  faculty: string;
+}
+
+const COURSE_PRESETS: CoursePreset[] = [
+  { id: 'custom', title: '-- Custom / Type Manually --', code: '', faculty: '' },
+  { id: 'cs201', title: 'Data Structures and Algorithms', code: 'CSE201', faculty: 'Dr. Smith' },
+  { id: 'cs202', title: 'Database Management Systems', code: 'CSE202', faculty: 'Prof. Johnson' },
+];
+
 const metadataFields: { key: keyof LabMetadata; label: string; placeholder: string }[] = [
   { key: 'labNumber', label: 'Lab Number', placeholder: 'e.g., 1' },
   { key: 'title', label: 'Lab Title', placeholder: 'e.g., Lab 1: Linux Basics' },
@@ -27,6 +40,23 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
   const updateLogo = useLabStore((state) => state.updateLogo);
   const resetLogo = useLabStore((state) => state.resetLogo);
   const [isOpen, setIsOpen] = useState(initiallyOpen);
+  const [selectedPreset, setSelectedPreset] = useState('custom');
+
+  const handlePresetChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const presetId = e.target.value;
+    setSelectedPreset(presetId);
+
+    if (presetId === 'custom') return;
+
+    const preset = COURSE_PRESETS.find((p) => p.id === presetId);
+    if (preset) {
+      updateMetadata({
+        courseTitle: preset.title,
+        courseCode: preset.code,
+        coordinatorName: preset.faculty,
+      });
+    }
+  };
 
   const handleLogoUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,6 +122,22 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
               <option value="Times-Roman">Times-Roman (Formal Serif)</option>
               <option value="Courier">Courier (Monospace)</option>
             </select>
+          </div>
+
+          <div className="mb-6 flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Quick-Fill Course</label>
+            <select
+              value={selectedPreset}
+              onChange={handlePresetChange}
+              className="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all shadow-sm"
+            >
+              {COURSE_PRESETS.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.title}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">Select a course to auto-fill Course Title, Course Code, and Coordinator Name.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
