@@ -2,6 +2,21 @@
 
 **A local-first, zero-friction document compiler designed to automate the creation of university lab records.**
 
+
+Auto formatted front page.
+
+<img width="600" height="847" alt="image" src="https://github.com/user-attachments/assets/ab96aec2-6d72-45f0-8fe9-78c963b0492e" />
+
+All pages are bordered and the images are auto adjusted, headings, question numbers and question can be added easily.
+
+<img width="595" height="857" alt="image" src="https://github.com/user-attachments/assets/38bc2402-c3b9-4181-bad1-e0e939b5dd49" />
+
+
+
+https://github.com/user-attachments/assets/41239915-63a3-4332-8973-50e26cfd5ed3
+
+
+
 ## The Problem
 
 Computer Science students spend hours every semester manually copying questions from lab sheet PDFs, taking terminal screenshots, and fighting with Microsoft Word formatting (especially erratic page breaks) to compile their submission records. It is a tedious, purely administrative task that consumes valuable time.
@@ -35,12 +50,19 @@ Instead of taking the standard "Print to PDF" approach (which converts the HTML 
 1. **The Interactive Web DOM** — For the drag-and-drop user workspace.
 2. **A Hidden, Declarative `<Document>` Tree** — Programs the physical A4 layout using strict `wrap={false}` constraints to guarantee unsplittable content blocks and precise alignment.
 
-## Running Locally
+
+## ⚠️ Important Note
+
+* For the best experience, **make sure your browser is not configured to automatically delete cookies or site data**.
+* If you are using a **guest/private computer or browser profile**, your locally saved data may not persist after the session ends.
+* Since the application stores your work **locally** in the browser, make sure to download and save the file.
+
+## Run Locally
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/lab-sheet-creator.git
+git clone https://github.com/Ani-github-24/lab-sheet-creator.git
 ```
 
 ### 2. Install Dependencies
@@ -56,15 +78,6 @@ npm install
 npm run dev
 ```
 
-## 🌐 Live Deployment
-
-This project is fully static and can be hosted for free on GitHub Pages or Vercel.
-
-To deploy via GitHub Pages:
-
-```bash
-npm run deploy
-```
 
 ## 📌 Future Improvements
 
