@@ -17,6 +17,7 @@ export interface LabMetadata {
   coordinatorName: string;
   logoUrl: string | null;
   fontFamily: 'Helvetica' | 'Times-Roman' | 'Courier';
+  includeFrontPage: boolean;
 }
 
 export interface LabQuestion {
@@ -66,20 +67,10 @@ export interface LabState {
   deleteCoursePreset: (id: string) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  toggleFrontPage: () => void;
 }
 
-const getNextPrefix = (questions: LabQuestion[]): string => {
-  if (questions.length === 0) return '1.';
-  const lastQ = questions[questions.length - 1];
-  if (lastQ.type === 'subheading') return '1.';
 
-  const match = lastQ.prefix.match(/(\d+)/);
-  if (match) {
-    const num = parseInt(match[1], 10);
-    return lastQ.prefix.replace(/\d+/, String(num + 1));
-  }
-  return 'Q.';
-};
 
 const defaultMetadata: LabMetadata = {
   labNumber: "",
@@ -97,6 +88,7 @@ const defaultMetadata: LabMetadata = {
   coordinatorName: "",
   logoUrl: null,
   fontFamily: 'Helvetica',
+  includeFrontPage: true,
 };
 
 export const useLabStore = create<LabState>((set, get) => ({
@@ -115,6 +107,15 @@ export const useLabStore = create<LabState>((set, get) => ({
       const next = !state.isDarkMode;
       localStorage.setItem('labsheet-dark-mode', String(next));
       return { isDarkMode: next };
+    });
+  },
+
+  toggleFrontPage: () => {
+    set((state) => {
+      const next = !state.metadata.includeFrontPage;
+      const newMetadata = { ...state.metadata, includeFrontPage: next };
+      db.metadata.put({ ...newMetadata, id: 1 }).catch(console.error);
+      return { metadata: newMetadata };
     });
   },
 
@@ -263,7 +264,7 @@ export const useLabStore = create<LabState>((set, get) => ({
       const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
-        prefix: customPrefix || getNextPrefix(state.questions),
+        prefix: customPrefix || '',
         questionText: text,
         screenshotUrl: null,
         type: 'question',

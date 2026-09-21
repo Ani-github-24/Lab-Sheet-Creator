@@ -19,6 +19,7 @@ function App() {
   const undo = useLabStore((state) => state.undo);
   const isDarkMode = useLabStore((state) => state.isDarkMode);
   const toggleDarkMode = useLabStore((state) => state.toggleDarkMode);
+  const toggleFrontPage = useLabStore((state) => state.toggleFrontPage);
 
   useEffect(() => {
     initializeStore();
@@ -150,12 +151,37 @@ function App() {
               <p className="text-gray-500 dark:text-gray-400 text-center text-lg mb-8">Please verify your cover page details before starting the lab.</p>
             </div>
             <div className="px-8 pb-8">
-              <FrontPageEditor initiallyOpen={true} />
+              {/* Include Cover Page Toggle */}
+              <div className="mb-6 flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Include University Cover Page</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Disable to skip the cover page and jump straight to questions.</p>
+                </div>
+                <button
+                  onClick={toggleFrontPage}
+                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
+                    metadata.includeFrontPage ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                  role="switch"
+                  aria-checked={metadata.includeFrontPage}
+                  aria-label="Include University Cover Page"
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      metadata.includeFrontPage ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {metadata.includeFrontPage && (
+                <FrontPageEditor initiallyOpen={true} />
+              )}
               <button
                 onClick={completeSetup}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl shadow-md transition-all active:scale-95 text-lg flex items-center justify-center gap-2"
               >
-                Confirm Details & Start Lab
+                {metadata.includeFrontPage ? 'Confirm Details & Start Lab' : 'Skip Cover Page & Start Lab'}
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
               </button>
             </div>

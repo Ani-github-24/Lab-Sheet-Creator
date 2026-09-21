@@ -135,7 +135,8 @@ const LabDocument: React.FC<LabDocumentProps> = ({ metadata, questions }) => {
         {/* Global Page Border */}
         <View fixed style={styles.pageBorderFrame} />
 
-        {/* Front Page Container */}
+        {/* Front Page Container - Conditionally rendered */}
+        {metadata.includeFrontPage && (
         <View style={styles.frontPageContainer}>
           {/* Top Center */}
           <View style={styles.topCenterBlock}>
@@ -208,10 +209,11 @@ const LabDocument: React.FC<LabDocumentProps> = ({ metadata, questions }) => {
             <Text style={[styles.signatureText, boldFont]}>Signature of the Student</Text>
           </View>
         </View>
+        )}
 
-        {/* Questions start on a new page but within the same Page element to inherit border */}
+        {/* Questions - always rendered */}
         {questions.length > 0 && (
-          <View break style={styles.questionsContainer}>
+          <View break={metadata.includeFrontPage} style={styles.questionsContainer}>
             {questions.map((q) => {
               if (q.type === 'subheading') {
                 return (
