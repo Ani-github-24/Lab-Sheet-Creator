@@ -243,7 +243,11 @@ function App() {
 
             <PDFDownloadLink
               document={<LabDocument metadata={metadata} questions={questions} />}
-              fileName={`Lab_${metadata.labNumber}_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`}
+              fileName={
+                metadata.assignmentType?.toUpperCase() === 'LAB'
+                  ? `Lab_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`
+                  : `${metadata.rollNumber}_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`
+              }
             >
               {({ loading }) => (
                 <button
