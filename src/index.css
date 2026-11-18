@@ -30,7 +30,7 @@
 
 @layer base {
   body {
-    @apply antialiased text-black bg-[#dceeff] font-sans selection:bg-[#ffd731] selection:text-black;
+    @apply antialiased text-black dark:text-white bg-[#dceeff] dark:bg-[#0f172a] font-sans selection:bg-[#ffd731] selection:text-black transition-colors duration-150;
   }
 }
 
@@ -62,7 +62,13 @@
 ::-webkit-scrollbar-track {
   background: #f0f6fc;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
 ::-webkit-scrollbar-thumb {
   background: #000000;
   border-radius: 1600px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #64748b;
 }

@@ -87,35 +87,35 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
   const canSave = metadata.courseTitle.trim().length > 0 && !isDuplicate;
 
   return (
-    <div className="bg-white rounded-[24px] border border-black overflow-hidden mb-4 transition-all">
+    <div className="bg-white dark:bg-[#1e293b] rounded-[24px] border border-black dark:border-white/20 overflow-hidden mb-4 transition-all">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-5 bg-white hover:bg-[#f8fafc] transition-colors focus:outline-none cursor-pointer"
+        className="w-full flex items-center justify-between p-5 bg-white dark:bg-[#1e293b] hover:bg-[#f8fafc] dark:hover:bg-[#334155] transition-colors focus:outline-none cursor-pointer"
       >
         <div className="flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#55db9c] border border-black"></span>
-          <h3 className="font-display font-extrabold text-xl uppercase tracking-tight text-black">
+          <h3 className="font-display font-extrabold text-xl uppercase tracking-tight text-black dark:text-white">
             Edit Cover Page Details
           </h3>
         </div>
-        <span className="w-8 h-8 rounded-full border border-black flex items-center justify-center font-bold text-xs text-black">
+        <span className="w-8 h-8 rounded-full border border-black dark:border-white/30 flex items-center justify-center font-bold text-xs text-black dark:text-white">
           {isOpen ? '▲' : '▼'}
         </span>
       </button>
 
       {isOpen && (
-        <div className="p-6 border-t border-black bg-white space-y-6">
+        <div className="p-6 border-t border-black dark:border-white/20 bg-white dark:bg-[#1e293b] space-y-6">
           {/* Custom Logo Upload Card */}
-          <div className="p-4 border border-black rounded-[20px] bg-[#dceeff] flex flex-col sm:flex-row items-center gap-4">
+          <div className="p-4 border border-black dark:border-white/20 rounded-[20px] bg-[#dceeff] dark:bg-[#0f172a] flex flex-col sm:flex-row items-center gap-4">
             <div className="flex-1">
-              <h4 className="text-xs font-bold text-black uppercase tracking-[0.032em] mb-0.5">
+              <h4 className="text-xs font-bold text-black dark:text-white uppercase tracking-[0.032em] mb-0.5">
                 University Logo Asset
               </h4>
-              <p className="text-xs text-black/70 mb-3">
+              <p className="text-xs text-black/70 dark:text-white/70 mb-3">
                 Upload a custom university logo image. Automatically preserved offline.
               </p>
 
-              <label className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-full border border-black cursor-pointer hover:bg-neutral-800 transition-colors text-xs font-bold tracking-[0.032em] uppercase">
+              <label className="inline-flex items-center gap-2 px-4 py-2 bg-black dark:bg-[#334155] text-white rounded-full border border-black dark:border-white/30 cursor-pointer hover:bg-neutral-800 dark:hover:bg-[#475569] transition-colors text-xs font-bold tracking-[0.032em] uppercase">
                 <span>📁</span>
                 Choose Image
                 <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
@@ -123,8 +123,8 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
             </div>
 
             {metadata.logoUrl && (
-              <div className="flex flex-col items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-black pt-3 sm:pt-0 sm:pl-4">
-                <img src={metadata.logoUrl} alt="Custom Logo" className="w-24 h-24 object-contain border border-black rounded-[14px] bg-white p-1" />
+              <div className="flex flex-col items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-black dark:border-white/20 pt-3 sm:pt-0 sm:pl-4">
+                <img src={metadata.logoUrl} alt="Custom Logo" className="w-24 h-24 object-contain border border-black dark:border-white/20 rounded-[14px] bg-white p-1" />
                 <button
                   onClick={resetLogo}
                   className="text-[11px] text-[#fb4903] hover:underline font-bold uppercase tracking-[0.032em] cursor-pointer"
@@ -137,41 +137,41 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
 
           {/* Document Font Dropdown */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-black uppercase tracking-[0.032em]">
+            <label className="text-[11px] font-bold text-black dark:text-white uppercase tracking-[0.032em]">
               PDF Typography
             </label>
             <select
               value={metadata.fontFamily || 'Helvetica'}
               onChange={(e) => updateMetadata({ fontFamily: e.target.value as any })}
-              className="w-full border border-black rounded-full px-4 py-2.5 text-xs text-black bg-white font-bold uppercase tracking-[0.032em] focus:outline-none cursor-pointer"
+              className="w-full border border-black dark:border-white/30 rounded-full px-4 py-2.5 text-xs text-black dark:text-white bg-white dark:bg-[#0f172a] font-bold uppercase tracking-[0.032em] focus:outline-none cursor-pointer"
             >
-              <option value="Helvetica">Helvetica (Standard Clean Sans)</option>
-              <option value="Times-Roman">Times-Roman (Formal Serif)</option>
-              <option value="Courier">Courier (Monospace Terminal)</option>
+              <option value="Helvetica" className="bg-white dark:bg-[#0f172a] text-black dark:text-white">Helvetica (Standard Clean Sans)</option>
+              <option value="Times-Roman" className="bg-white dark:bg-[#0f172a] text-black dark:text-white">Times-Roman (Formal Serif)</option>
+              <option value="Courier" className="bg-white dark:bg-[#0f172a] text-black dark:text-white">Courier (Monospace Terminal)</option>
             </select>
           </div>
 
           {/* Quick-Fill Course Presets */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-bold text-black uppercase tracking-[0.032em]">
+            <label className="text-[11px] font-bold text-black dark:text-white uppercase tracking-[0.032em]">
               Quick-Fill Course Preset
             </label>
             <select
               value={selectedPreset}
               onChange={handlePresetChange}
-              className="w-full border border-black rounded-full px-4 py-2.5 text-xs text-black bg-white font-bold uppercase tracking-[0.032em] focus:outline-none cursor-pointer"
+              className="w-full border border-black dark:border-white/30 rounded-full px-4 py-2.5 text-xs text-black dark:text-white bg-white dark:bg-[#0f172a] font-bold uppercase tracking-[0.032em] focus:outline-none cursor-pointer"
             >
-              <optgroup label="Default Courses">
+              <optgroup label="Default Courses" className="bg-white dark:bg-[#0f172a] text-black dark:text-white">
                 {BUILT_IN_PRESETS.map((preset) => (
-                  <option key={preset.id} value={preset.id}>
+                  <option key={preset.id} value={preset.id} className="bg-white dark:bg-[#0f172a] text-black dark:text-white">
                     {preset.title}
                   </option>
                 ))}
               </optgroup>
               {customCoursePresets.length > 0 && (
-                <optgroup label="Your Saved Courses">
+                <optgroup label="Your Saved Courses" className="bg-white dark:bg-[#0f172a] text-black dark:text-white">
                   {customCoursePresets.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
+                    <option key={preset.id} value={preset.id} className="bg-white dark:bg-[#0f172a] text-black dark:text-white">
                       {preset.title} ({preset.code})
                     </option>
                   ))}
@@ -198,7 +198,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
               if (field.key === 'logoUrl') return null;
               return (
                 <div key={field.key} className="flex flex-col gap-1">
-                  <label className="text-[11px] font-bold text-black uppercase tracking-[0.032em]">
+                  <label className="text-[11px] font-bold text-black dark:text-white uppercase tracking-[0.032em]">
                     {field.label}
                   </label>
                   <input
@@ -206,7 +206,7 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
                     value={metadata[field.key] as string}
                     onChange={(e) => updateMetadata({ [field.key]: e.target.value })}
                     placeholder={field.placeholder}
-                    className="w-full border border-black rounded-full px-4 py-2 text-xs text-black bg-white font-medium focus:outline-none placeholder:text-black/40"
+                    className="w-full border border-black dark:border-white/30 rounded-full px-4 py-2 text-xs text-black dark:text-white bg-white dark:bg-[#0f172a] font-medium focus:outline-none placeholder:text-black/40 dark:placeholder:text-white/40"
                   />
                 </div>
               );
@@ -218,12 +218,12 @@ const FrontPageEditor: React.FC<FrontPageEditorProps> = ({ initiallyOpen = false
             <button
               onClick={handleSavePreset}
               disabled={!canSave}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-[0.032em] uppercase border border-black transition-all ${
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-[0.032em] uppercase border border-black dark:border-white/30 transition-all ${
                 saveStatus === 'saved'
                   ? 'bg-[#55db9c] text-black cursor-default'
                   : canSave
-                    ? 'bg-white hover:bg-[#ffd731] text-black cursor-pointer'
-                    : 'bg-[#e9e9e9] text-black/40 border-black/30 cursor-not-allowed'
+                    ? 'bg-white dark:bg-[#334155] hover:bg-[#ffd731] dark:hover:bg-[#ffd731] text-black dark:text-white dark:hover:text-black cursor-pointer'
+                    : 'bg-[#e9e9e9] dark:bg-[#334155]/40 text-black/40 dark:text-white/40 border-black/30 dark:border-white/20 cursor-not-allowed'
               }`}
             >
               {saveStatus === 'saved' ? '✓ Saved as Course Preset!' : '＋ Save Current Course as Preset'}

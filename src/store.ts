@@ -186,7 +186,7 @@ export const useLabStore = create<LabState>((set, get) => ({
       if (state.pastQuestions.length === 0) return state;
       const newPast = [...state.pastQuestions];
       const previousQuestions = newPast.pop()!;
-      
+
       // Update Dexie to match the restored state
       db.transaction('rw', db.questions, async () => {
         await db.questions.clear();

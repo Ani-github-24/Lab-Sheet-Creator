@@ -108,16 +108,16 @@ const PdfViewerPanel: React.FC = () => {
   };
 
   return (
-    <div className="w-1/2 bg-[#f0f6fc] border-r border-black flex flex-col relative h-full">
+    <div className="w-1/2 bg-[#f0f6fc] dark:bg-[#0f172a] border-r border-black dark:border-white/20 flex flex-col relative h-full">
       {/* Header */}
-      <div className="p-4 px-6 bg-white border-b border-black z-10 sticky top-0 shrink-0 flex items-center justify-between">
+      <div className="p-4 px-6 bg-white dark:bg-[#1e293b] border-b border-black dark:border-white/20 z-10 sticky top-0 shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#4da2ff] border border-black"></span>
           <div>
-            <h2 className="font-display font-extrabold text-xl uppercase tracking-tight text-black leading-none">
+            <h2 className="font-display font-extrabold text-xl uppercase tracking-tight text-black dark:text-white leading-none">
               PDF READER
             </h2>
-            <p className="text-[11px] font-bold text-black/60 uppercase tracking-[0.032em] mt-0.5">
+            <p className="text-[11px] font-bold text-black/60 dark:text-white/60 uppercase tracking-[0.032em] mt-0.5">
               Highlight text to extract questions
             </p>
           </div>
@@ -126,7 +126,7 @@ const PdfViewerPanel: React.FC = () => {
         {/* Circular close button */}
         <button
           onClick={togglePdfViewer}
-          className="w-8 h-8 rounded-full border border-black bg-white hover:bg-[#fb4903] hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
+          className="w-8 h-8 rounded-full border border-black dark:border-white/30 bg-white dark:bg-[#334155] text-black dark:text-white hover:bg-[#fb4903] hover:text-white dark:hover:bg-[#fb4903] dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
           title="Hide PDF viewer"
           aria-label="Hide PDF viewer"
         >
@@ -134,17 +134,17 @@ const PdfViewerPanel: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-[#dceeff] p-6 relative" ref={containerRef}>
+      <div className="flex-1 overflow-y-auto bg-[#dceeff] dark:bg-[#0f172a]/70 p-6 relative" ref={containerRef}>
         {!file ? (
           <div className="flex items-center justify-center h-full">
-            <label className="flex flex-col items-center justify-center w-full max-w-md h-64 border border-dashed border-black rounded-[24px] cursor-pointer bg-white hover:bg-[#fff9d9] transition-all p-6 text-center">
+            <label className="flex flex-col items-center justify-center w-full max-w-md h-64 border border-dashed border-black dark:border-white/30 rounded-[24px] cursor-pointer bg-white dark:bg-[#1e293b] hover:bg-[#fff9d9] dark:hover:bg-[#334155] transition-all p-6 text-center">
               <div className="w-12 h-12 rounded-full bg-[#4da2ff] border border-black text-white flex items-center justify-center text-xl mb-3">
                 📄
               </div>
-              <p className="text-sm text-black font-bold uppercase tracking-[0.032em]">
+              <p className="text-sm text-black dark:text-white font-bold uppercase tracking-[0.032em]">
                 Click to Upload Lab PDF
               </p>
-              <p className="text-xs text-black/60 mt-1 font-medium">
+              <p className="text-xs text-black/60 dark:text-white/60 mt-1 font-medium">
                 or drag and drop your assignment manual here
               </p>
               <input type="file" className="hidden" accept="application/pdf" onChange={onFileChange} />
@@ -157,7 +157,7 @@ const PdfViewerPanel: React.FC = () => {
               onLoadSuccess={onDocumentLoadSuccess}
               loading={
                 <div className="flex justify-center items-center h-64">
-                  <div className="font-display font-extrabold text-xl uppercase text-black tracking-tight">
+                  <div className="font-display font-extrabold text-xl uppercase text-black dark:text-white tracking-tight">
                     LOADING PDF DOCUMENT...
                   </div>
                 </div>
@@ -165,7 +165,7 @@ const PdfViewerPanel: React.FC = () => {
               className="w-full flex flex-col items-center"
             >
               {Array.from(new Array(numPages), (_, index) => (
-                <div key={`page_${index + 1}`} className="mb-6 rounded-[20px] border border-black overflow-hidden bg-white">
+                <div key={`page_${index + 1}`} className="mb-6 rounded-[20px] border border-black dark:border-white/20 overflow-hidden bg-white shadow-sm">
                   <Page
                     pageNumber={index + 1}
                     renderTextLayer={true}
