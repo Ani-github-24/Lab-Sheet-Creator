@@ -109,7 +109,7 @@ const PdfViewerPanel: React.FC = () => {
 
   return (
     <div className="w-1/2 bg-[#f0f6fc] border-r border-black flex flex-col relative h-full">
-      {/* Slush Header */}
+      {/* Header */}
       <div className="p-4 px-6 bg-white border-b border-black z-10 sticky top-0 shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-[#4da2ff] border border-black"></span>
@@ -178,7 +178,7 @@ const PdfViewerPanel: React.FC = () => {
           </div>
         )}
 
-        {/* Slush Tooltip */}
+        {/* Action Tooltip */}
         {tooltipState.visible && (
           <div
             className="absolute z-50 transform -translate-x-1/2 -translate-y-full pb-2 pointer-events-auto"

@@ -102,12 +102,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ q, index, isLast }) => {
 
           {/* Main Card */}
           <div
-            className={`rounded-[24px] p-6 border border-black flex flex-col gap-4 mb-2 transition-all ${
-              isSubheading ? 'bg-[#e9ccff]' : 'bg-white'
-            }`}
+            className={`rounded-[24px] p-6 border border-black flex flex-col gap-4 mb-2 transition-all ${isSubheading ? 'bg-[#e9ccff]' : 'bg-white'
+              }`}
           >
             <div className="flex justify-between items-start gap-4">
-              <div 
+              <div
                 {...provided.dragHandleProps}
                 className="mt-1 cursor-grab active:cursor-grabbing text-black/40 hover:text-black transition-colors shrink-0"
                 title="Drag to reorder"
@@ -133,7 +132,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ q, index, isLast }) => {
                   </span>
                 )}
 
-                <div 
+                <div
                   onClick={() => !isEditing && setIsEditing(true)}
                   className={`w-full ${!isEditing ? 'hover:bg-black/5 cursor-text rounded-[12px] p-1 transition-colors' : ''}`}
                 >
@@ -145,17 +144,15 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ q, index, isLast }) => {
                         editQuestionText(q.id, editText);
                         setIsEditing(false);
                       }}
-                      className={`w-full border border-black rounded-[16px] p-3 text-black bg-white focus:outline-none focus:ring-1 focus:ring-black resize-y ${
-                        isSubheading ? 'font-bold min-h-[50px] text-lg' : 'min-h-[90px] text-sm'
-                      }`}
+                      className={`w-full border border-black rounded-[16px] p-3 text-black bg-white focus:outline-none focus:ring-1 focus:ring-black resize-y ${isSubheading ? 'font-bold min-h-[50px] text-lg' : 'min-h-[90px] text-sm'
+                        }`}
                       autoFocus
                     />
                   ) : (
-                    <div className={`text-black leading-relaxed min-h-[1.5em] ${
-                      isSubheading
-                        ? 'font-display font-extrabold text-2xl uppercase tracking-tight'
-                        : 'font-medium text-sm'
-                    }`}>
+                    <div className={`text-black leading-relaxed min-h-[1.5em] ${isSubheading
+                      ? 'font-display font-extrabold text-2xl uppercase tracking-tight'
+                      : 'font-medium text-sm'
+                      }`}>
                       {q.questionText || <span className="text-black/40 italic">Click to type question...</span>}
                     </div>
                   )}
@@ -269,14 +266,14 @@ const BuilderPanel: React.FC = () => {
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    
+
     const startIndex = result.source.index;
     const endIndex = result.destination.index;
-    
+
     const newQuestions = Array.from(questions);
     const [removed] = newQuestions.splice(startIndex, 1);
     newQuestions.splice(endIndex, 0, removed);
-    
+
     setQuestions(newQuestions);
   };
 
@@ -301,16 +298,16 @@ const BuilderPanel: React.FC = () => {
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="questions-list">
               {(provided) => (
-                <div 
-                  {...provided.droppableProps} 
+                <div
+                  {...provided.droppableProps}
                   ref={provided.innerRef}
                   className="flex flex-col"
                 >
                   {questions.map((q, index) => (
-                    <QuestionCard 
-                      key={q.id} 
-                      q={q} 
-                      index={index} 
+                    <QuestionCard
+                      key={q.id}
+                      q={q}
+                      index={index}
                       isLast={index === questions.length - 1}
                     />
                   ))}
@@ -322,7 +319,7 @@ const BuilderPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Slush Pill Action Buttons - Sticky to bottom */}
+      {/* Pill Action Buttons - Sticky to bottom */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-white/95 backdrop-blur-md border border-black rounded-full p-2 flex gap-3 z-30">
         <button
           onClick={() => addBlankQuestion()}

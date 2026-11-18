@@ -12,6 +12,7 @@ function App() {
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [showMarkdownModal, setShowMarkdownModal] = useState(false);
+  const [showCoverModal, setShowCoverModal] = useState(false);
   // Default with blank lab sheet as requested
   const [homeMode, setHomeMode] = useState<'pdf' | 'markdown' | 'blank'>('blank');
 
@@ -111,11 +112,11 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  // Slush Marquee strip at very top
+  // Marquee announcement strip at very top
   const MarqueeStrip = () => (
-    <div className="w-full bg-black text-white text-[12px] font-bold tracking-[0.032em] uppercase py-2 overflow-hidden border-b border-black select-none shrink-0 z-30">
+    <div className="w-full bg-black text-white text-[11px] sm:text-[12px] font-bold tracking-[0.032em] uppercase py-1.5 overflow-hidden border-b border-black select-none shrink-0 z-30">
       <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
-        <span>★ SLUSH LAB SHEET CREATOR</span>
+        <span>★ LAB SHEET CREATOR</span>
         <span>•</span>
         <span>INFLATABLE STICKER UNIVERSE ON PASTEL PAPER</span>
         <span>•</span>
@@ -124,7 +125,7 @@ function App() {
         <span>PASTE MARKDOWN OR HIGHLIGHT PDF</span>
         <span>•</span>
         <span>ONE-CLICK INSTANT EXPORT</span>
-        <span>★ SLUSH LAB SHEET CREATOR</span>
+        <span>★ LAB SHEET CREATOR</span>
         <span>•</span>
         <span>INFLATABLE STICKER UNIVERSE ON PASTEL PAPER</span>
         <span>•</span>
@@ -140,250 +141,265 @@ function App() {
   if (!isInitialized) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#dceeff] text-black font-display font-extrabold text-3xl tracking-tight">
-        LOADING SLUSH LABS...
+        LOADING LAB SHEET CREATOR...
       </div>
     );
   }
 
-  // Home Page (Setup Screen)
+  // Home Page (Setup Screen) - Single screen, NO SCROLL!
   if (!isSetupComplete) {
     return (
-      <div className="min-h-screen bg-[#dceeff] flex flex-col font-sans text-black selection:bg-[#ffd731] selection:text-black">
+      <div className="h-screen overflow-hidden flex flex-col font-sans bg-[#dceeff] text-black selection:bg-[#ffd731] selection:text-black">
         {/* Full-bleed Marquee */}
         <MarqueeStrip />
 
-        {/* Top Slush Nav */}
-        <header className="px-6 py-4 flex items-center justify-between border-b border-black bg-white/80 backdrop-blur-xs sticky top-0 z-20">
+        {/* Top Navigation Menu Bar with App Name */}
+        <header className="px-6 py-3 flex items-center justify-between border-b border-black bg-white shrink-0 z-20">
+          {/* App Name moved to menu bar */}
           <div className="flex items-center gap-3">
-            {/* Logo Mark: Circular black-outlined 'S' badge */}
-            <div className="w-10 h-10 rounded-full border border-black bg-white flex items-center justify-center font-display font-extrabold text-xl text-black">
-              S
+            <div className="w-9 h-9 rounded-full border border-black bg-white flex items-center justify-center font-display font-extrabold text-lg text-black">
+              ⚡
             </div>
-            <div className="flex flex-col">
-              <span className="font-display font-extrabold text-2xl uppercase tracking-tight leading-none text-black">
-                SLUSH
-              </span>
-              <span className="text-[10px] font-bold tracking-[0.032em] uppercase text-black/60">
-                Lab Sheet System
+            <div className="flex items-center gap-2">
+              <h1 className="font-display font-black text-2xl uppercase tracking-tight leading-none text-black">
+                LAB SHEET CREATOR
+              </h1>
+              <span className="hidden md:inline-flex px-2.5 py-0.5 rounded-full border border-black bg-[#ffd731] text-[10px] font-bold tracking-[0.032em] uppercase">
+                Paper Edition
               </span>
             </div>
           </div>
 
+          {/* Cover Page Options in Menu Bar */}
           <div className="flex items-center gap-2">
-            <span className="hidden sm:inline-flex px-3 py-1.5 rounded-full border border-black bg-[#ffd731] text-[11px] font-bold tracking-[0.032em] uppercase">
-              ★ Paper Edition
-            </span>
-            <span className="px-3 py-1.5 rounded-full border border-black bg-[#e9ccff] text-[11px] font-bold tracking-[0.032em] uppercase">
-              Light Canvas
-            </span>
+            <button
+              onClick={toggleFrontPage}
+              className={`px-3 py-1.5 rounded-full border border-black text-xs font-bold uppercase tracking-[0.032em] transition-all cursor-pointer flex items-center gap-1.5 ${
+                metadata.includeFrontPage
+                  ? 'bg-[#55db9c] text-black'
+                  : 'bg-[#e9e9e9] text-black/60'
+              }`}
+              title="Toggle Cover Page"
+            >
+              <span>{metadata.includeFrontPage ? '✓' : '✕'}</span>
+              <span className="hidden sm:inline">Cover Page:</span>
+              <span>{metadata.includeFrontPage ? 'Included' : 'Skipped'}</span>
+            </button>
+
+            {metadata.includeFrontPage && (
+              <button
+                onClick={() => setShowCoverModal(true)}
+                className="px-3.5 py-1.5 rounded-full border border-black bg-white hover:bg-[#ffd731] text-black text-xs font-bold uppercase tracking-[0.032em] transition-colors cursor-pointer flex items-center gap-1.5"
+                title="Edit University Cover Page details"
+              >
+                <span>⚙</span>
+                <span className="hidden sm:inline">Edit Cover Details</span>
+              </button>
+            )}
           </div>
         </header>
 
-        {/* Hero & Setup Section */}
-        <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 flex flex-col items-center">
-          {/* Sculptural Display Headline Block with Decorative Stickers */}
-          <div className="w-full text-center relative py-8 select-none">
-            {/* Floating Sticker 1 - Ember Rocket */}
-            <div className="hidden md:flex absolute left-4 top-2 -rotate-6 items-center gap-1.5 px-3 py-1.5 rounded-[20px] bg-[#fb4903] text-white border border-black text-xs font-bold uppercase tracking-[0.032em]">
-              <span>🚀</span> Fast Export
-            </div>
-
-            {/* Floating Sticker 2 - Mint Pop Badge */}
-            <div className="hidden md:flex absolute right-6 top-4 rotate-3 items-center gap-1.5 px-3 py-1.5 rounded-[20px] bg-[#55db9c] text-black border border-black text-xs font-bold uppercase tracking-[0.032em]">
-              <span>✓</span> Offline Ready
-            </div>
-
-            {/* Floating Sticker 3 - Sunburst Coin */}
-            <div className="hidden lg:flex absolute right-16 bottom-0 rotate-6 items-center gap-1.5 px-3 py-1.5 rounded-[20px] bg-[#ffd731] text-black border border-black text-xs font-bold uppercase tracking-[0.032em]">
-              <span>★</span> 100% Free
-            </div>
-
-            {/* Crushed Display Type (Lateral style via Antonio 800) */}
-            <h1 className="font-display font-black text-6xl sm:text-8xl md:text-9xl text-black tracking-tight uppercase leading-[0.78]">
-              LAB SHEET
-            </h1>
-            <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl text-black tracking-tight uppercase leading-[0.78] mt-1">
-              CREATOR
-            </div>
-
-            {/* Tagline Subhead */}
-            <p className="mt-6 text-sm sm:text-base font-medium text-black max-w-xl mx-auto leading-relaxed tracking-[-0.01em]">
-              Inflatable sticker universe on pastel paper. Build formatted university lab sheets with official cover pages in seconds.
-            </p>
-          </div>
-
+        {/* Main Viewport Content - Fits on single screen with NO SCROLL */}
+        <main className="flex-1 flex flex-col justify-center items-center p-4 sm:p-6 max-w-4xl w-full mx-auto">
           {/* Main Card Surface */}
-          <div className="w-full bg-white rounded-[28px] border border-black p-6 sm:p-10 mb-12 relative">
-            {/* University Cover Page Section */}
-            <div className="mb-8 pb-8 border-b border-black/10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-[20px] bg-[#f8fafc] border border-black">
+          <div className="w-full bg-white rounded-[28px] border border-black p-6 sm:p-8 flex flex-col justify-between">
+            {/* Section Heading */}
+            <div className="text-center mb-5">
+              <span className="inline-block px-3 py-1 rounded-full border border-black bg-[#dceeff] text-[11px] font-bold tracking-[0.032em] uppercase mb-2">
+                ★ Select Mode
+              </span>
+              <h2 className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-black leading-none">
+                CHOOSE CREATION MODE
+              </h2>
+              <p className="text-xs text-black/70 font-medium mt-1">
+                Pick an option below to start your lab sheet. Blank Sheet is selected by default.
+              </p>
+            </div>
+
+            {/* 3 Mode Selection Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-5">
+              {/* Option 1: Blank Lab Sheet (DEFAULT) */}
+              <button
+                type="button"
+                onClick={() => setHomeMode('blank')}
+                className={`p-4 rounded-[22px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                  homeMode === 'blank'
+                    ? 'bg-[#ffd731] ring-2 ring-black'
+                    : 'bg-white hover:bg-[#fff9d9]'
+                }`}
+              >
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#55db9c] border border-black"></span>
-                    <h3 className="font-bold text-base text-black tracking-tight">University Cover Page</h3>
+                  <div className="w-8 h-8 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-xs mb-2.5">
+                    ✍️
                   </div>
-                  <p className="text-xs text-black/60 mt-0.5">
-                    Include or skip the formal university cover page (logo, course code, student info).
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-bold text-black text-sm tracking-tight">Blank Sheet</h4>
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-black text-white px-1.5 py-0.5 rounded-full">
+                      Default
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-black/70 mt-1 leading-relaxed font-medium">
+                    Clean full-width editor. Add questions, code, and paste screenshots manually.
                   </p>
                 </div>
+                {homeMode === 'blank' && (
+                  <span className="mt-2.5 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.032em] text-black">
+                    ● Selected
+                  </span>
+                )}
+              </button>
 
-                {/* Pill Switch */}
-                <button
-                  onClick={toggleFrontPage}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black text-xs font-bold tracking-[0.032em] uppercase transition-all cursor-pointer ${
-                    metadata.includeFrontPage
-                      ? 'bg-[#55db9c] text-black'
-                      : 'bg-[#e9e9e9] text-black/60'
-                  }`}
-                  role="switch"
-                  aria-checked={metadata.includeFrontPage}
-                >
-                  <span>{metadata.includeFrontPage ? '✓ Included' : '✕ Skipped'}</span>
-                </button>
-              </div>
-
-              {metadata.includeFrontPage && (
-                <div className="mt-4">
-                  <FrontPageEditor initiallyOpen={false} />
+              {/* Option 2: Paste Markdown */}
+              <button
+                type="button"
+                onClick={() => setHomeMode('markdown')}
+                className={`p-4 rounded-[22px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                  homeMode === 'markdown'
+                    ? 'bg-[#e9ccff] ring-2 ring-black'
+                    : 'bg-white hover:bg-[#f5e6ff]'
+                }`}
+              >
+                <div>
+                  <div className="w-8 h-8 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-xs mb-2.5">
+                    📝
+                  </div>
+                  <h4 className="font-bold text-black text-sm tracking-tight">Paste Markdown</h4>
+                  <p className="text-[11px] text-black/70 mt-1 leading-relaxed font-medium">
+                    Paste .md text with code blocks. Generates PDF with front page or loads into editor.
+                  </p>
                 </div>
-              )}
+                {homeMode === 'markdown' && (
+                  <span className="mt-2.5 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.032em] text-black">
+                    ● Selected
+                  </span>
+                )}
+              </button>
+
+              {/* Option 3: PDF to Highlight */}
+              <button
+                type="button"
+                onClick={() => setHomeMode('pdf')}
+                className={`p-4 rounded-[22px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                  homeMode === 'pdf'
+                    ? 'bg-[#dceeff] ring-2 ring-black'
+                    : 'bg-white hover:bg-[#eef6ff]'
+                }`}
+              >
+                <div>
+                  <div className="w-8 h-8 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-xs mb-2.5">
+                    📑
+                  </div>
+                  <h4 className="font-bold text-black text-sm tracking-tight">Highlight PDF</h4>
+                  <p className="text-[11px] text-black/70 mt-1 leading-relaxed font-medium">
+                    Split-screen mode: upload lab manual PDF, highlight text to create questions.
+                  </p>
+                </div>
+                {homeMode === 'pdf' && (
+                  <span className="mt-2.5 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.032em] text-black">
+                    ● Selected
+                  </span>
+                )}
+              </button>
             </div>
 
-            {/* Mode Selection Section */}
+            {/* Action CTA Button based on selected mode */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <label className="text-sm font-bold tracking-[0.032em] uppercase text-black">
-                  Choose Creation Mode:
-                </label>
-                <span className="text-xs font-bold text-black/50 uppercase tracking-[0.032em]">
-                  Default: Blank Sheet
-                </span>
-              </div>
-
-              {/* 3 Slush Mode Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Option 1: Blank Lab Sheet (DEFAULT) */}
+              {homeMode === 'blank' && (
                 <button
-                  type="button"
-                  onClick={() => setHomeMode('blank')}
-                  className={`p-5 rounded-[24px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
-                    homeMode === 'blank'
-                      ? 'bg-[#ffd731] shadow-none ring-2 ring-black'
-                      : 'bg-white hover:bg-[#fff9d9]'
-                  }`}
-                >
-                  <div>
-                    <div className="w-10 h-10 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-sm mb-3">
-                      ✍️
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="font-bold text-black text-base tracking-tight">Blank Lab Sheet</h4>
-                      <span className="text-[10px] font-black uppercase tracking-wider bg-black text-white px-2 py-0.5 rounded-full">
-                        Default
-                      </span>
-                    </div>
-                    <p className="text-xs text-black/70 mt-1.5 leading-relaxed font-medium">
-                      Start directly in the clean full editor. Add questions, code, and paste screenshots manually.
-                    </p>
-                  </div>
-                  {homeMode === 'blank' && (
-                    <span className="mt-4 inline-flex items-center text-xs font-bold uppercase tracking-[0.032em] text-black">
-                      ● Active Selection
-                    </span>
-                  )}
-                </button>
-
-                {/* Option 2: Paste Markdown */}
-                <button
-                  type="button"
-                  onClick={() => setHomeMode('markdown')}
-                  className={`p-5 rounded-[24px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
-                    homeMode === 'markdown'
-                      ? 'bg-[#e9ccff] shadow-none ring-2 ring-black'
-                      : 'bg-white hover:bg-[#f5e6ff]'
-                  }`}
-                >
-                  <div>
-                    <div className="w-10 h-10 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-sm mb-3">
-                      📝
-                    </div>
-                    <h4 className="font-bold text-black text-base tracking-tight">Paste Markdown</h4>
-                    <p className="text-xs text-black/70 mt-1.5 leading-relaxed font-medium">
-                      Paste .md text with code blocks. Convert directly to PDF with the cover page or load into editor.
-                    </p>
-                  </div>
-                  {homeMode === 'markdown' && (
-                    <span className="mt-4 inline-flex items-center text-xs font-bold uppercase tracking-[0.032em] text-black">
-                      ● Active Selection
-                    </span>
-                  )}
-                </button>
-
-                {/* Option 3: PDF to Highlight */}
-                <button
-                  type="button"
-                  onClick={() => setHomeMode('pdf')}
-                  className={`p-5 rounded-[24px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
-                    homeMode === 'pdf'
-                      ? 'bg-[#dceeff] shadow-none ring-2 ring-black'
-                      : 'bg-white hover:bg-[#eef6ff]'
-                  }`}
-                >
-                  <div>
-                    <div className="w-10 h-10 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-sm mb-3">
-                      📑
-                    </div>
-                    <h4 className="font-bold text-black text-base tracking-tight">Highlight PDF</h4>
-                    <p className="text-xs text-black/70 mt-1.5 leading-relaxed font-medium">
-                      Split-screen mode: upload lab sheet PDF on left, highlight text to create questions on right.
-                    </p>
-                  </div>
-                  {homeMode === 'pdf' && (
-                    <span className="mt-4 inline-flex items-center text-xs font-bold uppercase tracking-[0.032em] text-black">
-                      ● Active Selection
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Dynamic Action Area */}
-            {homeMode === 'markdown' ? (
-              <div className="pt-6">
-                <MarkdownConverter
-                  variant="inline"
-                  onSuccessOpenEditor={() => {
+                  onClick={() => {
                     setShowPdfViewer(false);
                     completeSetup();
                   }}
-                />
-              </div>
-            ) : (
-              <div className="pt-8">
-                {/* Slush Filled CTA Button: 1600px radius, black background, white text */}
+                  className="w-full bg-black hover:bg-neutral-800 text-white font-bold tracking-[0.032em] uppercase py-3.5 px-8 rounded-full border border-black transition-all active:scale-[0.99] text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Start Blank Lab Sheet</span>
+                  <span className="text-base">→</span>
+                </button>
+              )}
+
+              {homeMode === 'pdf' && (
                 <button
                   onClick={() => {
-                    setShowPdfViewer(homeMode === 'pdf');
+                    setShowPdfViewer(true);
                     completeSetup();
                   }}
-                  className="w-full bg-black hover:bg-neutral-800 text-white font-bold tracking-[0.032em] uppercase py-4 px-8 rounded-full border border-black transition-all active:scale-[0.99] text-base flex items-center justify-center gap-3 cursor-pointer"
+                  className="w-full bg-black hover:bg-neutral-800 text-white font-bold tracking-[0.032em] uppercase py-3.5 px-8 rounded-full border border-black transition-all active:scale-[0.99] text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {homeMode === 'blank' ? (
-                    <>
-                      <span>Start Blank Lab Sheet</span>
-                      <span className="text-lg">→</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Start with PDF Highlighter</span>
-                      <span className="text-lg">→</span>
-                    </>
-                  )}
+                  <span>Start with PDF Highlighter</span>
+                  <span className="text-base">→</span>
                 </button>
+              )}
+
+              {homeMode === 'markdown' && (
+                <button
+                  onClick={() => setShowMarkdownModal(true)}
+                  className="w-full bg-black hover:bg-neutral-800 text-white font-bold tracking-[0.032em] uppercase py-3.5 px-8 rounded-full border border-black transition-all active:scale-[0.99] text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Open Markdown (.md) Converter</span>
+                  <span className="text-base">→</span>
+                </button>
+              )}
+
+              {/* Bottom Quick Info Bar */}
+              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[11px] font-bold uppercase tracking-[0.032em] text-black/60 pt-3">
+                <span>Lab #{metadata.labNumber || '1'}</span>
+                <span>•</span>
+                <span>Course: {metadata.courseCode || 'Not Set'}</span>
+                <span>•</span>
+                <span>Student: {metadata.studentName || 'Not Set'}</span>
               </div>
-            )}
+            </div>
           </div>
         </main>
+
+        {/* Cover Page Details Modal */}
+        {showCoverModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-2xs p-4">
+            <div className="bg-white rounded-[28px] border border-black max-w-2xl w-full p-6 sm:p-8 overflow-hidden max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between pb-3 border-b border-black shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#55db9c] border border-black"></span>
+                  <h3 className="font-display font-extrabold text-xl uppercase tracking-tight text-black">
+                    EDIT UNIVERSITY COVER DETAILS
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowCoverModal(false)}
+                  className="w-8 h-8 rounded-full border border-black bg-white hover:bg-[#fb4903] hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
+                  aria-label="Close dialog"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="overflow-y-auto py-4 flex-1">
+                <FrontPageEditor initiallyOpen={true} />
+              </div>
+
+              <div className="pt-3 border-t border-black flex justify-end">
+                <button
+                  onClick={() => setShowCoverModal(false)}
+                  className="px-6 py-2.5 rounded-full border border-black bg-black text-white hover:bg-neutral-800 text-xs font-bold uppercase tracking-[0.032em] cursor-pointer"
+                >
+                  Save & Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Markdown Modal when chosen from home */}
+        {showMarkdownModal && (
+          <MarkdownConverter
+            variant="modal"
+            onClose={() => setShowMarkdownModal(false)}
+            onSuccessOpenEditor={() => {
+              setShowPdfViewer(false);
+              setShowMarkdownModal(false);
+              completeSetup();
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -403,17 +419,17 @@ function App() {
 
         {/* Right/Main Panel - Interactive Editor */}
         <div className={`${showPdfViewer ? 'w-1/2' : 'w-full'} bg-[#dceeff] flex flex-col h-full transition-all duration-200`}>
-          {/* Top Slush Header */}
+          {/* Top Header */}
           <div className="bg-white border-b border-black z-10 sticky top-0 shrink-0">
             {/* Top row: Brand & Info */}
-            <div className="flex justify-between items-center px-6 py-3.5 border-b border-black/10">
+            <div className="flex justify-between items-center px-6 py-3 border-b border-black/10">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full border border-black bg-white flex items-center justify-center font-display font-extrabold text-sm text-black">
-                  S
+                  ⚡
                 </div>
                 <div>
                   <h2 className="font-display font-black text-2xl uppercase tracking-tight text-black leading-none">
-                    EDITOR WORKSPACE
+                    LAB SHEET CREATOR
                   </h2>
                   <p className="text-[11px] font-bold text-black/60 uppercase tracking-[0.032em] mt-0.5">
                     Lab {metadata.labNumber || '1'} • {metadata.courseCode || 'Course'} • {questions.length} Questions
@@ -429,7 +445,7 @@ function App() {
               </div>
             </div>
 
-            {/* Bottom row: Slush Pill Action Buttons */}
+            {/* Bottom row: Pill Action Buttons */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-6 py-2.5 bg-white">
               <div className="flex flex-wrap items-center gap-2">
                 {/* Toggle PDF panel button */}
@@ -486,7 +502,7 @@ function App() {
                 </button>
               </div>
 
-              {/* Slush Filled Primary CTA: Download PDF */}
+              {/* Filled Primary CTA: Download PDF */}
               <div>
                 <PDFDownloadLink
                   document={<LabDocument metadata={metadata} questions={questions} />}

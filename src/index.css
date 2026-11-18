@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* Slush Colors */
+  /* Design System Colors */
   --color-carbon: #000000;
   --color-paper-white: #ffffff;
   --color-sky-wash: #dceeff;
@@ -35,7 +35,7 @@
 }
 
 /* Marquee continuous scroll animation */
-@keyframes slush-marquee {
+@keyframes marquee-scroll {
   0% {
     transform: translateX(0%);
   }
@@ -47,7 +47,7 @@
 .animate-marquee {
   display: flex;
   width: max-content;
-  animation: slush-marquee 28s linear infinite;
+  animation: marquee-scroll 28s linear infinite;
 }
 
 .animate-marquee:hover {

@@ -80,7 +80,7 @@ export const MarkdownConverter: React.FC<MarkdownConverterProps> = ({
 
   const content = (
     <div className="flex flex-col gap-4">
-      {/* Top Banner / Explainer in Slush Style */}
+      {/* Top Banner / Explainer */}
       <div className="bg-[#dceeff] border border-black rounded-[20px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export const MarkdownConverter: React.FC<MarkdownConverterProps> = ({
       {/* Editor & Preview Tabs with Toolbar */}
       <div className="flex flex-col border border-black rounded-[24px] overflow-hidden bg-white">
         <div className="flex flex-wrap items-center justify-between border-b border-black px-4 py-2.5 bg-[#f8fafc] gap-2">
-          {/* Slush Pill Tabs */}
+          {/* Pill Tabs */}
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setActiveTab('editor')}
@@ -291,7 +291,7 @@ int main() {
 
       {/* Primary Action Buttons */}
       <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
-        {/* PDF Download Button - Filled Slush CTA */}
+        {/* PDF Download Button - Filled Primary CTA */}
         <PDFDownloadLink
           document={<LabDocument metadata={effectiveMetadata} questions={parseResult.questions} />}
           fileName={pdfFileName}
