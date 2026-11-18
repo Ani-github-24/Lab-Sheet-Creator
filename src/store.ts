@@ -58,8 +58,8 @@ export interface LabState {
   resetWorkspace: () => void;
   updateLogo: (file: Blob) => void;
   resetLogo: () => void;
-  addBlankQuestion: () => void;
-  addSubheading: () => void;
+  addBlankQuestion: (atIndex?: number) => void;
+  addSubheading: (atIndex?: number) => void;
   moveQuestion: (id: string, direction: 'up' | 'down') => void;
   setQuestions: (questions: LabQuestion[]) => void;
   customCoursePresets: CoursePreset[];
@@ -334,10 +334,9 @@ export const useLabStore = create<LabState>((set, get) => ({
     });
   },
 
-  addBlankQuestion: () => {
+  addBlankQuestion: (atIndex?: number) => {
     set((state) => {
       const pastQuestions = [...state.pastQuestions, state.questions];
-      const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
         prefix: '',
@@ -347,29 +346,40 @@ export const useLabStore = create<LabState>((set, get) => ({
         type: 'question',
       };
 
-      const newDbQuestion: DBQuestion = {
-        id: newQuestion.id,
-        order: order,
-        prefix: newQuestion.prefix,
-        questionText: newQuestion.questionText,
-        imageBlob: null,
-        codeSnippet: undefined,
-        type: 'question',
-      };
+      const newQuestions = [...state.questions];
+      if (typeof atIndex === 'number' && atIndex >= 0 && atIndex <= newQuestions.length) {
+        newQuestions.splice(atIndex, 0, newQuestion);
+      } else {
+        newQuestions.push(newQuestion);
+      }
 
-      db.questions.put(newDbQuestion).catch(console.error);
+      db.transaction('rw', db.questions, async () => {
+        await db.questions.clear();
+        const promises = newQuestions.map((q, idx) => {
+          const dbQuestion: DBQuestion = {
+            id: q.id,
+            order: idx + 1,
+            prefix: q.prefix,
+            questionText: q.questionText,
+            imageBlob: null,
+            codeSnippet: q.codeSnippet,
+            type: q.type,
+          };
+          return db.questions.put(dbQuestion);
+        });
+        await Promise.all(promises);
+      }).catch(console.error);
 
       return {
-        questions: [...state.questions, newQuestion],
+        questions: newQuestions,
         pastQuestions,
       };
     });
   },
 
-  addSubheading: () => {
+  addSubheading: (atIndex?: number) => {
     set((state) => {
       const pastQuestions = [...state.pastQuestions, state.questions];
-      const order = state.questions.length + 1;
       const newQuestion: LabQuestion = {
         id: crypto.randomUUID(),
         prefix: '',
@@ -379,20 +389,32 @@ export const useLabStore = create<LabState>((set, get) => ({
         type: 'subheading',
       };
 
-      const newDbQuestion: DBQuestion = {
-        id: newQuestion.id,
-        order: order,
-        prefix: newQuestion.prefix,
-        questionText: newQuestion.questionText,
-        imageBlob: null,
-        codeSnippet: undefined,
-        type: 'subheading',
-      };
+      const newQuestions = [...state.questions];
+      if (typeof atIndex === 'number' && atIndex >= 0 && atIndex <= newQuestions.length) {
+        newQuestions.splice(atIndex, 0, newQuestion);
+      } else {
+        newQuestions.push(newQuestion);
+      }
 
-      db.questions.put(newDbQuestion).catch(console.error);
+      db.transaction('rw', db.questions, async () => {
+        await db.questions.clear();
+        const promises = newQuestions.map((q, idx) => {
+          const dbQuestion: DBQuestion = {
+            id: q.id,
+            order: idx + 1,
+            prefix: q.prefix,
+            questionText: q.questionText,
+            imageBlob: null,
+            codeSnippet: q.codeSnippet,
+            type: q.type,
+          };
+          return db.questions.put(dbQuestion);
+        });
+        await Promise.all(promises);
+      }).catch(console.error);
 
       return {
-        questions: [...state.questions, newQuestion],
+        questions: newQuestions,
         pastQuestions,
       };
     });

@@ -3,7 +3,58 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { useLabStore, LabQuestion } from '../store';
 import FrontPageEditor from './FrontPageEditor';
 
-const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index }) => {
+interface ColabInserterProps {
+  index: number;
+}
+
+const ColabInserter: React.FC<ColabInserterProps> = ({ index }) => {
+  const addBlankQuestion = useLabStore((state) => state.addBlankQuestion);
+  const addSubheading = useLabStore((state) => state.addSubheading);
+
+  return (
+    <div className="relative h-7 -my-2 flex items-center justify-center group/colab z-20">
+      {/* Horizontal divider line on hover (Google Colab style) */}
+      <div className="absolute inset-x-4 h-[1px] bg-black opacity-0 group-hover/colab:opacity-100 transition-opacity duration-150 pointer-events-none" />
+
+      {/* Floating Buttons: Add Question & Add Headings */}
+      <div className="opacity-0 group-hover/colab:opacity-100 transition-all duration-150 transform scale-90 group-hover/colab:scale-100 flex items-center gap-1.5 bg-[#dceeff] p-1 rounded-full z-20 border border-black shadow-none pointer-events-auto">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            addBlankQuestion(index);
+          }}
+          className="px-3 py-1 rounded-full border border-black bg-white hover:bg-[#ffd731] text-black text-[11px] font-bold uppercase tracking-[0.032em] transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+          title="Insert question here"
+        >
+          <span>＋</span>
+          <span>Add Question</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            addSubheading(index);
+          }}
+          className="px-3 py-1 rounded-full border border-black bg-[#e9ccff] hover:bg-[#d9b3ff] text-black text-[11px] font-bold uppercase tracking-[0.032em] transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+          title="Insert heading here"
+        >
+          <span>§</span>
+          <span>Add Headings</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+interface QuestionCardProps {
+  q: LabQuestion;
+  index: number;
+  isLast: boolean;
+}
+
+const QuestionCard: React.FC<QuestionCardProps> = ({ q, index, isLast }) => {
   const removeQuestion = useLabStore((state) => state.removeQuestion);
   const attachScreenshot = useLabStore((state) => state.attachScreenshot);
   const removeScreenshot = useLabStore((state) => state.removeScreenshot);
@@ -44,152 +95,165 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`rounded-[24px] p-6 border border-black flex flex-col gap-4 mb-3 transition-all ${
-            isSubheading ? 'bg-[#e9ccff]' : 'bg-white'
-          }`}
+          className="flex flex-col relative"
         >
-          <div className="flex justify-between items-start gap-4">
-            <div 
-              {...provided.dragHandleProps}
-              className="mt-1 cursor-grab active:cursor-grabbing text-black/40 hover:text-black transition-colors shrink-0"
-              title="Drag to reorder"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path>
-              </svg>
-            </div>
+          {/* Colab Inserter directly above this card */}
+          <ColabInserter index={index} />
 
-            <div className="flex-1 flex flex-col items-start sm:flex-row gap-2">
-              {!isSubheading && (
-                <input
-                  value={q.prefix}
-                  onChange={(e) => editQuestionPrefix(q.id, e.target.value)}
-                  className="font-mono font-bold text-black w-14 bg-transparent border-b border-black/40 focus:border-black focus:outline-none transition-colors text-base"
-                  placeholder="1."
-                />
-              )}
-
-              {isSubheading && (
-                <span className="px-2.5 py-0.5 rounded-full border border-black bg-black text-white text-[10px] font-bold uppercase tracking-[0.032em] shrink-0 self-center">
-                  Section Header
-                </span>
-              )}
-
+          {/* Main Card */}
+          <div
+            className={`rounded-[24px] p-6 border border-black flex flex-col gap-4 mb-2 transition-all ${
+              isSubheading ? 'bg-[#e9ccff]' : 'bg-white'
+            }`}
+          >
+            <div className="flex justify-between items-start gap-4">
               <div 
-                onClick={() => !isEditing && setIsEditing(true)}
-                className={`w-full ${!isEditing ? 'hover:bg-black/5 cursor-text rounded-[12px] p-1 transition-colors' : ''}`}
+                {...provided.dragHandleProps}
+                className="mt-1 cursor-grab active:cursor-grabbing text-black/40 hover:text-black transition-colors shrink-0"
+                title="Drag to reorder"
               >
-                {isEditing ? (
-                  <textarea
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    onBlur={() => {
-                      editQuestionText(q.id, editText);
-                      setIsEditing(false);
-                    }}
-                    className={`w-full border border-black rounded-[16px] p-3 text-black bg-white focus:outline-none focus:ring-1 focus:ring-black resize-y ${
-                      isSubheading ? 'font-bold min-h-[50px] text-lg' : 'min-h-[90px] text-sm'
-                    }`}
-                    autoFocus
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path>
+                </svg>
+              </div>
+
+              <div className="flex-1 flex flex-col items-start sm:flex-row gap-2">
+                {!isSubheading && (
+                  <input
+                    value={q.prefix}
+                    onChange={(e) => editQuestionPrefix(q.id, e.target.value)}
+                    className="font-mono font-bold text-black w-14 bg-transparent border-b border-black/40 focus:border-black focus:outline-none transition-colors text-base"
+                    placeholder="1."
                   />
-                ) : (
-                  <div className={`text-black leading-relaxed min-h-[1.5em] ${
-                    isSubheading
-                      ? 'font-display font-extrabold text-2xl uppercase tracking-tight'
-                      : 'font-medium text-sm'
-                  }`}>
-                    {q.questionText || <span className="text-black/40 italic">Click to type question...</span>}
-                  </div>
                 )}
+
+                {isSubheading && (
+                  <span className="px-2.5 py-0.5 rounded-full border border-black bg-black text-white text-[10px] font-bold uppercase tracking-[0.032em] shrink-0 self-center">
+                    Section Header
+                  </span>
+                )}
+
+                <div 
+                  onClick={() => !isEditing && setIsEditing(true)}
+                  className={`w-full ${!isEditing ? 'hover:bg-black/5 cursor-text rounded-[12px] p-1 transition-colors' : ''}`}
+                >
+                  {isEditing ? (
+                    <textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      onBlur={() => {
+                        editQuestionText(q.id, editText);
+                        setIsEditing(false);
+                      }}
+                      className={`w-full border border-black rounded-[16px] p-3 text-black bg-white focus:outline-none focus:ring-1 focus:ring-black resize-y ${
+                        isSubheading ? 'font-bold min-h-[50px] text-lg' : 'min-h-[90px] text-sm'
+                      }`}
+                      autoFocus
+                    />
+                  ) : (
+                    <div className={`text-black leading-relaxed min-h-[1.5em] ${
+                      isSubheading
+                        ? 'font-display font-extrabold text-2xl uppercase tracking-tight'
+                        : 'font-medium text-sm'
+                    }`}>
+                      {q.questionText || <span className="text-black/40 italic">Click to type question...</span>}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 shrink-0">
+                <button
+                  onClick={() => removeQuestion(q.id)}
+                  className="px-3 py-1.5 rounded-full border border-black bg-white hover:bg-[#fb4903] hover:text-white text-xs font-bold uppercase tracking-[0.032em] transition-colors cursor-pointer"
+                  aria-label="Delete Question"
+                >
+                  Delete
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 shrink-0">
-              <button
-                onClick={() => removeQuestion(q.id)}
-                className="px-3 py-1.5 rounded-full border border-black bg-white hover:bg-[#fb4903] hover:text-white text-xs font-bold uppercase tracking-[0.032em] transition-colors cursor-pointer"
-                aria-label="Delete Question"
-              >
-                Delete
-              </button>
-            </div>
+            {!isSubheading && (
+              <div className="mt-1 flex flex-col gap-3">
+                {(!q.screenshotUrl && !q.codeSnippet) && (
+                  <div
+                    tabIndex={0}
+                    onPaste={handlePaste}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file && file.type.startsWith('image/')) {
+                        attachScreenshot(q.id, file);
+                      }
+                    }}
+                    className="border border-dashed border-black rounded-[20px] p-6 text-center text-black bg-[#f8fafc] hover:bg-[#fff9d9] transition-colors cursor-pointer outline-none flex flex-col items-center justify-center gap-2"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-white border border-black flex items-center justify-center text-xs font-bold">
+                      📋
+                    </div>
+                    <p className="text-xs font-bold text-black uppercase tracking-[0.032em]">
+                      Press <kbd className="bg-white border border-black rounded-full px-2 py-0.5 text-[10px] mx-1">Ctrl+V</kbd> to paste screenshot or code
+                    </p>
+                    <label className="cursor-pointer text-[11px] font-bold underline uppercase tracking-[0.032em] text-black">
+                      or browse image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) attachScreenshot(q.id, file);
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {q.codeSnippet && (
+                  <div className="relative group rounded-[16px] overflow-hidden border border-black bg-black">
+                    <div className="px-3 py-1.5 bg-black border-b border-white/20 flex items-center justify-between text-[11px] font-mono text-white/60">
+                      <span>TERMINAL / CODE BLOCK</span>
+                      <button
+                        onClick={() => updateCodeSnippet(q.id, '')}
+                        className="text-white hover:text-[#fb4903] text-[10px] uppercase font-bold tracking-wider cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <textarea
+                      value={q.codeSnippet}
+                      onChange={(e) => updateCodeSnippet(q.id, e.target.value)}
+                      className="w-full h-auto min-h-[140px] bg-black text-[#d4d4d4] p-4 font-mono text-xs focus:outline-none resize-y"
+                      spellCheck={false}
+                    />
+                  </div>
+                )}
+
+                {q.screenshotUrl && (
+                  <div className="relative group rounded-[16px] overflow-hidden border border-black bg-white p-2">
+                    <img
+                      src={q.screenshotUrl}
+                      alt={`Screenshot for Question ${q.prefix}`}
+                      className="w-full h-auto max-h-[400px] object-contain rounded-[12px] block"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button
+                        onClick={() => removeScreenshot(q.id)}
+                        className="bg-white text-black border border-black px-4 py-2 rounded-full font-bold uppercase text-xs tracking-[0.032em] hover:bg-[#fb4903] hover:text-white transition-all cursor-pointer"
+                      >
+                        Remove Screenshot
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {!isSubheading && (
-            <div className="mt-1 flex flex-col gap-3">
-              {(!q.screenshotUrl && !q.codeSnippet) && (
-                <div
-                  tabIndex={0}
-                  onPaste={handlePaste}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const file = e.dataTransfer.files?.[0];
-                    if (file && file.type.startsWith('image/')) {
-                      attachScreenshot(q.id, file);
-                    }
-                  }}
-                  className="border border-dashed border-black rounded-[20px] p-6 text-center text-black bg-[#f8fafc] hover:bg-[#fff9d9] transition-colors cursor-pointer outline-none flex flex-col items-center justify-center gap-2"
-                >
-                  <div className="w-8 h-8 rounded-full bg-white border border-black flex items-center justify-center text-xs font-bold">
-                    📋
-                  </div>
-                  <p className="text-xs font-bold text-black uppercase tracking-[0.032em]">
-                    Press <kbd className="bg-white border border-black rounded-full px-2 py-0.5 text-[10px] mx-1">Ctrl+V</kbd> to paste screenshot or code
-                  </p>
-                  <label className="cursor-pointer text-[11px] font-bold underline uppercase tracking-[0.032em] text-black">
-                    or browse image
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) attachScreenshot(q.id, file);
-                      }}
-                    />
-                  </label>
-                </div>
-              )}
-
-              {q.codeSnippet && (
-                <div className="relative group rounded-[16px] overflow-hidden border border-black bg-black">
-                  <div className="px-3 py-1.5 bg-black border-b border-white/20 flex items-center justify-between text-[11px] font-mono text-white/60">
-                    <span>TERMINAL / CODE BLOCK</span>
-                    <button
-                      onClick={() => updateCodeSnippet(q.id, '')}
-                      className="text-white hover:text-[#fb4903] text-[10px] uppercase font-bold tracking-wider"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                  <textarea
-                    value={q.codeSnippet}
-                    onChange={(e) => updateCodeSnippet(q.id, e.target.value)}
-                    className="w-full h-auto min-h-[140px] bg-black text-[#d4d4d4] p-4 font-mono text-xs focus:outline-none resize-y"
-                    spellCheck={false}
-                  />
-                </div>
-              )}
-
-              {q.screenshotUrl && (
-                <div className="relative group rounded-[16px] overflow-hidden border border-black bg-white p-2">
-                  <img
-                    src={q.screenshotUrl}
-                    alt={`Screenshot for Question ${q.prefix}`}
-                    className="w-full h-auto max-h-[400px] object-contain rounded-[12px] block"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button
-                      onClick={() => removeScreenshot(q.id)}
-                      className="bg-white text-black border border-black px-4 py-2 rounded-full font-bold uppercase text-xs tracking-[0.032em] hover:bg-[#fb4903] hover:text-white transition-all cursor-pointer"
-                    >
-                      Remove Screenshot
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+          {/* Colab Inserter directly below the last card */}
+          {isLast && (
+            <ColabInserter index={index + 1} />
           )}
         </div>
       )}
@@ -217,7 +281,7 @@ const BuilderPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-full pb-20">
+    <div className="flex flex-col min-h-full pb-24">
       <div className="flex flex-col gap-4 flex-1">
         <FrontPageEditor />
 
@@ -230,7 +294,7 @@ const BuilderPanel: React.FC = () => {
               BLANK LAB SHEET
             </h3>
             <p className="text-xs text-black/60 max-w-sm mx-auto mt-1 leading-relaxed">
-              No questions yet. Click <strong>Add Blank Question</strong> below or use <strong>Paste .md</strong> in the top toolbar to load your notes.
+              No questions yet. Click <strong>Add Question</strong> below or use <strong>Paste .md</strong> in the top toolbar to load your notes.
             </p>
           </div>
         ) : (
@@ -247,6 +311,7 @@ const BuilderPanel: React.FC = () => {
                       key={q.id} 
                       q={q} 
                       index={index} 
+                      isLast={index === questions.length - 1}
                     />
                   ))}
                   {provided.placeholder}
@@ -258,20 +323,20 @@ const BuilderPanel: React.FC = () => {
       </div>
 
       {/* Slush Pill Action Buttons - Sticky to bottom */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-white/90 backdrop-blur-md border border-black rounded-full p-2 flex gap-3 z-30">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-white/95 backdrop-blur-md border border-black rounded-full p-2 flex gap-3 z-30">
         <button
-          onClick={addBlankQuestion}
+          onClick={() => addBlankQuestion()}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full border border-black bg-white hover:bg-[#ffd731] text-black text-xs font-bold tracking-[0.032em] uppercase transition-all cursor-pointer"
         >
           <span>＋</span>
           <span>Add Question</span>
         </button>
         <button
-          onClick={addSubheading}
+          onClick={() => addSubheading()}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full border border-black bg-[#e9ccff] hover:bg-[#d9b3ff] text-black text-xs font-bold tracking-[0.032em] uppercase transition-all cursor-pointer"
         >
           <span>§</span>
-          <span>Add Section</span>
+          <span>Add Headings</span>
         </button>
       </div>
     </div>
