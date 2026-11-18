@@ -17,23 +17,24 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
 
   const handlePaste = (e: ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
-    
-    const text = e.clipboardData.getData('text');
-    if (text) {
-      updateCodeSnippet(q.id, text);
-      return;
-    }
 
+    // Check for image in clipboard FIRST
     const items = e.clipboardData.items;
-
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.includes('image')) {
         const blob = items[i].getAsFile();
         if (blob) {
           attachScreenshot(q.id, blob);
+          return;
         }
-        break;
       }
+    }
+
+    // Otherwise check for plain text / code snippet
+    const text = e.clipboardData.getData('text');
+    if (text && text.trim()) {
+      updateCodeSnippet(q.id, text);
+      return;
     }
   };
 
@@ -102,15 +103,41 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
             <div
               tabIndex={0}
               onPaste={handlePaste}
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-10 text-center text-gray-500 dark:text-gray-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer outline-none"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith('image/')) {
+                  attachScreenshot(q.id, file);
+                }
+              }}
+              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center text-gray-500 dark:text-gray-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer outline-none flex flex-col items-center justify-center gap-2"
             >
-              <p className="font-medium">
-                Click here to focus, then press{' '}
-                <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md px-2 py-1 font-mono text-sm shadow-sm mx-1">
+              <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <p className="font-medium text-sm">
+                Press{' '}
+                <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 font-mono text-xs shadow-sm mx-1">
                   Ctrl+V
                 </kbd>{' '}
-                to paste your terminal screenshot or code snippet
+                to paste your terminal code or screenshot
               </p>
+              <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                <span>or</span>
+                <label className="cursor-pointer text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
+                  browse image file
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) attachScreenshot(q.id, file);
+                    }}
+                  />
+                </label>
+              </div>
             </div>
           )}
 

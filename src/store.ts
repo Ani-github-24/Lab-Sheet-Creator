@@ -189,7 +189,7 @@ export const useLabStore = create<LabState>((set, get) => ({
       const dbQuestions = await db.questions.orderBy('order').toArray();
       const initialQuestions: LabQuestion[] = dbQuestions.map((q) => ({
         id: q.id,
-        prefix: q.prefix || String(q.order) + ".",
+        prefix: q.prefix !== undefined ? q.prefix : (q.type === 'subheading' ? '' : String(q.order) + "."),
         questionText: q.questionText,
         screenshotUrl: q.imageBlob ? URL.createObjectURL(q.imageBlob) : null,
         codeSnippet: q.codeSnippet,
