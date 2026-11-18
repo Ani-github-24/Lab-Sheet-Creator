@@ -44,141 +44,153 @@ const QuestionCard: React.FC<{ q: LabQuestion; index: number }> = ({ q, index })
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6 border ${isSubheading ? 'border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-950/20' : 'border-gray-100 dark:border-gray-700'} flex flex-col gap-4 transition-all hover:shadow-md mb-2`}
+          className={`rounded-[24px] p-6 border border-black flex flex-col gap-4 mb-3 transition-all ${
+            isSubheading ? 'bg-[#e9ccff]' : 'bg-white'
+          }`}
         >
           <div className="flex justify-between items-start gap-4">
             <div 
               {...provided.dragHandleProps}
-              className="mt-1 cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors flex-shrink-0"
+              className="mt-1 cursor-grab active:cursor-grabbing text-black/40 hover:text-black transition-colors shrink-0"
               title="Drag to reorder"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path></svg>
-            </div>
-            <div className="flex-1 text-lg flex flex-col items-start sm:flex-row">
-          {!isSubheading && (
-            <input
-              value={q.prefix}
-              onChange={(e) => editQuestionPrefix(q.id, e.target.value)}
-              className="font-bold text-gray-800 dark:text-gray-200 mr-2 w-16 bg-transparent border-b border-transparent hover:border-gray-300 dark:hover:border-gray-600 focus:border-indigo-500 focus:outline-none transition-colors"
-              placeholder="1."
-            />
-          )}
-          <div 
-            onClick={() => !isEditing && setIsEditing(true)}
-            className={`w-full ${!isEditing ? 'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-text rounded transition-colors' : ''}`}
-          >
-            {isEditing ? (
-              <textarea
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                onBlur={() => {
-                  editQuestionText(q.id, editText);
-                  setIsEditing(false);
-                }}
-                className={`w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y mt-2 ${isSubheading ? 'font-bold min-h-[60px]' : 'min-h-[100px]'}`}
-                autoFocus
-              />
-            ) : (
-              <div className={`text-gray-700 dark:text-gray-300 leading-relaxed min-h-[1.5em] p-1 border border-transparent hover:border-gray-200 dark:hover:border-gray-600 rounded transition-colors ${isSubheading ? 'font-extrabold text-xl block w-full border-b-2 border-indigo-200 dark:border-indigo-800 pb-2 mb-2' : ''}`}>
-                {q.questionText || <span className="text-gray-400 dark:text-gray-500 italic">Click to edit</span>}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 flex-shrink-0">
-          {/* Edit button removed in favor of click-to-edit */}
-          <button
-            onClick={() => removeQuestion(q.id)}
-            className="text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors text-center w-full"
-            aria-label="Delete Question"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-
-      {!isSubheading && (
-        <div className="mt-2 flex flex-col gap-4">
-          {(!q.screenshotUrl && !q.codeSnippet) && (
-            <div
-              tabIndex={0}
-              onPaste={handlePaste}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const file = e.dataTransfer.files?.[0];
-                if (file && file.type.startsWith('image/')) {
-                  attachScreenshot(q.id, file);
-                }
-              }}
-              className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center text-gray-500 dark:text-gray-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer outline-none flex flex-col items-center justify-center gap-2"
-            >
-              <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16"></path>
               </svg>
-              <p className="font-medium text-sm">
-                Press{' '}
-                <kbd className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md px-2 py-0.5 font-mono text-xs shadow-sm mx-1">
-                  Ctrl+V
-                </kbd>{' '}
-                to paste your terminal code or screenshot
-              </p>
-              <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                <span>or</span>
-                <label className="cursor-pointer text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
-                  browse image file
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) attachScreenshot(q.id, file);
+            </div>
+
+            <div className="flex-1 flex flex-col items-start sm:flex-row gap-2">
+              {!isSubheading && (
+                <input
+                  value={q.prefix}
+                  onChange={(e) => editQuestionPrefix(q.id, e.target.value)}
+                  className="font-mono font-bold text-black w-14 bg-transparent border-b border-black/40 focus:border-black focus:outline-none transition-colors text-base"
+                  placeholder="1."
+                />
+              )}
+
+              {isSubheading && (
+                <span className="px-2.5 py-0.5 rounded-full border border-black bg-black text-white text-[10px] font-bold uppercase tracking-[0.032em] shrink-0 self-center">
+                  Section Header
+                </span>
+              )}
+
+              <div 
+                onClick={() => !isEditing && setIsEditing(true)}
+                className={`w-full ${!isEditing ? 'hover:bg-black/5 cursor-text rounded-[12px] p-1 transition-colors' : ''}`}
+              >
+                {isEditing ? (
+                  <textarea
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onBlur={() => {
+                      editQuestionText(q.id, editText);
+                      setIsEditing(false);
                     }}
+                    className={`w-full border border-black rounded-[16px] p-3 text-black bg-white focus:outline-none focus:ring-1 focus:ring-black resize-y ${
+                      isSubheading ? 'font-bold min-h-[50px] text-lg' : 'min-h-[90px] text-sm'
+                    }`}
+                    autoFocus
                   />
-                </label>
+                ) : (
+                  <div className={`text-black leading-relaxed min-h-[1.5em] ${
+                    isSubheading
+                      ? 'font-display font-extrabold text-2xl uppercase tracking-tight'
+                      : 'font-medium text-sm'
+                  }`}>
+                    {q.questionText || <span className="text-black/40 italic">Click to type question...</span>}
+                  </div>
+                )}
               </div>
             </div>
-          )}
 
-          {q.codeSnippet && (
-            <div className="relative group rounded-xl overflow-hidden border border-gray-800 bg-[#1e1e1e]">
-              <textarea
-                value={q.codeSnippet}
-                onChange={(e) => updateCodeSnippet(q.id, e.target.value)}
-                className="w-full h-auto min-h-[150px] bg-transparent text-[#d4d4d4] p-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
-                spellCheck={false}
-              />
-              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button
-                  onClick={() => updateCodeSnippet(q.id, '')}
-                  className="bg-gray-700 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-600 transition-colors shadow-sm"
-                >
-                  Clear Code
-                </button>
-              </div>
+            <div className="flex flex-col gap-2 shrink-0">
+              <button
+                onClick={() => removeQuestion(q.id)}
+                className="px-3 py-1.5 rounded-full border border-black bg-white hover:bg-[#fb4903] hover:text-white text-xs font-bold uppercase tracking-[0.032em] transition-colors cursor-pointer"
+                aria-label="Delete Question"
+              >
+                Delete
+              </button>
             </div>
-          )}
+          </div>
 
-          {q.screenshotUrl && (
-            <div className="relative group rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <img
-                src={q.screenshotUrl}
-                alt={`Screenshot for Question ${q.prefix}`}
-                className="w-full h-auto object-contain block"
-              />
-              <div className="absolute inset-0 bg-gray-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                <button
-                  onClick={() => removeScreenshot(q.id)}
-                  className="bg-white text-red-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-red-50 transition-colors shadow-lg transform hover:scale-105 active:scale-95"
+          {!isSubheading && (
+            <div className="mt-1 flex flex-col gap-3">
+              {(!q.screenshotUrl && !q.codeSnippet) && (
+                <div
+                  tabIndex={0}
+                  onPaste={handlePaste}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file && file.type.startsWith('image/')) {
+                      attachScreenshot(q.id, file);
+                    }
+                  }}
+                  className="border border-dashed border-black rounded-[20px] p-6 text-center text-black bg-[#f8fafc] hover:bg-[#fff9d9] transition-colors cursor-pointer outline-none flex flex-col items-center justify-center gap-2"
                 >
-                  Remove Screenshot
-                </button>
-              </div>
+                  <div className="w-8 h-8 rounded-full bg-white border border-black flex items-center justify-center text-xs font-bold">
+                    📋
+                  </div>
+                  <p className="text-xs font-bold text-black uppercase tracking-[0.032em]">
+                    Press <kbd className="bg-white border border-black rounded-full px-2 py-0.5 text-[10px] mx-1">Ctrl+V</kbd> to paste screenshot or code
+                  </p>
+                  <label className="cursor-pointer text-[11px] font-bold underline uppercase tracking-[0.032em] text-black">
+                    or browse image
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) attachScreenshot(q.id, file);
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {q.codeSnippet && (
+                <div className="relative group rounded-[16px] overflow-hidden border border-black bg-black">
+                  <div className="px-3 py-1.5 bg-black border-b border-white/20 flex items-center justify-between text-[11px] font-mono text-white/60">
+                    <span>TERMINAL / CODE BLOCK</span>
+                    <button
+                      onClick={() => updateCodeSnippet(q.id, '')}
+                      className="text-white hover:text-[#fb4903] text-[10px] uppercase font-bold tracking-wider"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <textarea
+                    value={q.codeSnippet}
+                    onChange={(e) => updateCodeSnippet(q.id, e.target.value)}
+                    className="w-full h-auto min-h-[140px] bg-black text-[#d4d4d4] p-4 font-mono text-xs focus:outline-none resize-y"
+                    spellCheck={false}
+                  />
+                </div>
+              )}
+
+              {q.screenshotUrl && (
+                <div className="relative group rounded-[16px] overflow-hidden border border-black bg-white p-2">
+                  <img
+                    src={q.screenshotUrl}
+                    alt={`Screenshot for Question ${q.prefix}`}
+                    className="w-full h-auto max-h-[400px] object-contain rounded-[12px] block"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      onClick={() => removeScreenshot(q.id)}
+                      className="bg-white text-black border border-black px-4 py-2 rounded-full font-bold uppercase text-xs tracking-[0.032em] hover:bg-[#fb4903] hover:text-white transition-all cursor-pointer"
+                    >
+                      Remove Screenshot
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
         </div>
       )}
     </Draggable>
@@ -205,52 +217,61 @@ const BuilderPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-full">
-      <div className="flex flex-col gap-6 p-6 pb-24 flex-1">
+    <div className="flex flex-col min-h-full pb-20">
+      <div className="flex flex-col gap-4 flex-1">
         <FrontPageEditor />
-      {questions.length === 0 ? (
-        <div className="text-gray-400 dark:text-gray-500 text-center mt-12 text-lg">
-          No questions yet. Add one from the left panel or start with a blank question.
-        </div>
-      ) : (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="questions-list">
-            {(provided) => (
-              <div 
-                {...provided.droppableProps} 
-                ref={provided.innerRef}
-                className="flex flex-col gap-2"
-              >
-                {questions.map((q, index) => (
-                  <QuestionCard 
-                    key={q.id} 
-                    q={q} 
-                    index={index} 
-                  />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      )}
+
+        {questions.length === 0 ? (
+          <div className="bg-white rounded-[28px] border border-black p-10 text-center my-6">
+            <div className="w-12 h-12 rounded-full bg-[#ffd731] border border-black mx-auto flex items-center justify-center text-xl font-bold mb-3">
+              ✍️
+            </div>
+            <h3 className="font-display font-extrabold text-2xl uppercase tracking-tight text-black">
+              BLANK LAB SHEET
+            </h3>
+            <p className="text-xs text-black/60 max-w-sm mx-auto mt-1 leading-relaxed">
+              No questions yet. Click <strong>Add Blank Question</strong> below or use <strong>Paste .md</strong> in the top toolbar to load your notes.
+            </p>
+          </div>
+        ) : (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="questions-list">
+              {(provided) => (
+                <div 
+                  {...provided.droppableProps} 
+                  ref={provided.innerRef}
+                  className="flex flex-col"
+                >
+                  {questions.map((q, index) => (
+                    <QuestionCard 
+                      key={q.id} 
+                      q={q} 
+                      index={index} 
+                    />
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
       </div>
 
-      {/* Action Buttons - Sticky to bottom */}
-      <div className="sticky bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_10px_rgba(0,0,0,0.2)] flex gap-4 z-20 mt-auto">
+      {/* Slush Pill Action Buttons - Sticky to bottom */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-white/90 backdrop-blur-md border border-black rounded-full p-2 flex gap-3 z-30">
         <button
           onClick={addBlankQuestion}
-          className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all font-bold"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full border border-black bg-white hover:bg-[#ffd731] text-black text-xs font-bold tracking-[0.032em] uppercase transition-all cursor-pointer"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-          Add Blank Question
+          <span>＋</span>
+          <span>Add Question</span>
         </button>
         <button
           onClick={addSubheading}
-          className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-xl text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all font-bold"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full border border-black bg-[#e9ccff] hover:bg-[#d9b3ff] text-black text-xs font-bold tracking-[0.032em] uppercase transition-all cursor-pointer"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
-          Add Subheading
+          <span>§</span>
+          <span>Add Section</span>
         </button>
       </div>
     </div>

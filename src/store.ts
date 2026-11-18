@@ -68,6 +68,10 @@ export interface LabState {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   toggleFrontPage: () => void;
+  showPdfViewer: boolean;
+  setShowPdfViewer: (show: boolean) => void;
+  togglePdfViewer: () => void;
+  importQuestions: (questions: LabQuestion[], mode?: 'replace' | 'append') => void;
 }
 
 
@@ -101,6 +105,48 @@ export const useLabStore = create<LabState>((set, get) => ({
   isSetupComplete: false,
   completeSetup: () => set({ isSetupComplete: true }),
   pdfFile: null,
+  showPdfViewer: localStorage.getItem('labsheet-show-pdf-viewer') === 'true',
+
+  setShowPdfViewer: (show: boolean) => {
+    localStorage.setItem('labsheet-show-pdf-viewer', String(show));
+    set({ showPdfViewer: show });
+  },
+
+  togglePdfViewer: () => {
+    set((state) => {
+      const next = !state.showPdfViewer;
+      localStorage.setItem('labsheet-show-pdf-viewer', String(next));
+      return { showPdfViewer: next };
+    });
+  },
+
+  importQuestions: (newQuestions, mode = 'replace') => {
+    set((state) => {
+      const pastQuestions = [...state.pastQuestions, state.questions];
+      const merged = mode === 'replace' ? newQuestions : [...state.questions, ...newQuestions];
+
+      db.transaction('rw', db.questions, async () => {
+        if (mode === 'replace') {
+          await db.questions.clear();
+        }
+        const promises = merged.map((q, idx) => {
+          const dbQ: DBQuestion = {
+            id: q.id,
+            order: idx + 1,
+            prefix: q.prefix,
+            questionText: q.questionText,
+            imageBlob: null,
+            codeSnippet: q.codeSnippet,
+            type: q.type || 'question',
+          };
+          return db.questions.put(dbQ);
+        });
+        await Promise.all(promises);
+      }).catch(console.error);
+
+      return { questions: merged, pastQuestions };
+    });
+  },
 
   toggleDarkMode: () => {
     set((state) => {

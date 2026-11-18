@@ -4,11 +4,17 @@ import BuilderPanel from './components/BuilderPanel';
 import PdfViewerPanel from './components/PdfViewerPanel';
 import LabDocument from './components/LabDocument';
 import FrontPageEditor from './components/FrontPageEditor';
+import MarkdownConverter from './components/MarkdownConverter';
 import { useLabStore } from './store';
+import { getPdfFileName } from './utils/pdfFileName';
 
 function App() {
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [showMarkdownModal, setShowMarkdownModal] = useState(false);
+  // Default with blank lab sheet as requested
+  const [homeMode, setHomeMode] = useState<'pdf' | 'markdown' | 'blank'>('blank');
+
   const questions = useLabStore((state) => state.questions);
   const metadata = useLabStore((state) => state.metadata);
   const initializeStore = useLabStore((state) => state.initializeStore);
@@ -17,23 +23,14 @@ function App() {
   const isSetupComplete = useLabStore((state) => state.isSetupComplete);
   const completeSetup = useLabStore((state) => state.completeSetup);
   const undo = useLabStore((state) => state.undo);
-  const isDarkMode = useLabStore((state) => state.isDarkMode);
-  const toggleDarkMode = useLabStore((state) => state.toggleDarkMode);
   const toggleFrontPage = useLabStore((state) => state.toggleFrontPage);
+  const showPdfViewer = useLabStore((state) => state.showPdfViewer);
+  const setShowPdfViewer = useLabStore((state) => state.setShowPdfViewer);
+  const togglePdfViewer = useLabStore((state) => state.togglePdfViewer);
 
   useEffect(() => {
     initializeStore();
   }, [initializeStore]);
-
-  // Sync dark class to <html>
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -64,10 +61,10 @@ function App() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lab Backup - ${metadata.labNumber}</title>
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }
-  pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }
-  img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; margin: 1rem 0; }
-  h1 { border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+  body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; color: #000; background: #ffffff; }
+  pre { background: #000000; color: #ffffff; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #000000; }
+  img { max-width: 100%; height: auto; border: 1px solid #000000; border-radius: 12px; margin: 1rem 0; }
+  h1 { border-bottom: 2px solid #000000; padding-bottom: 0.5rem; }
   h2 { margin-top: 2rem; }
 </style>
 </head>
@@ -114,242 +111,498 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  // Dark mode toggle button component
-  const DarkModeToggle = () => (
-    <button
-      onClick={toggleDarkMode}
-      className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-all shadow-sm border border-gray-200 dark:border-gray-600"
-      title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      aria-label="Toggle dark mode"
-    >
-      {isDarkMode ? (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ) : (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-      )}
-    </button>
+  // Slush Marquee strip at very top
+  const MarqueeStrip = () => (
+    <div className="w-full bg-black text-white text-[12px] font-bold tracking-[0.032em] uppercase py-2 overflow-hidden border-b border-black select-none shrink-0 z-30">
+      <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+        <span>★ SLUSH LAB SHEET CREATOR</span>
+        <span>•</span>
+        <span>INFLATABLE STICKER UNIVERSE ON PASTEL PAPER</span>
+        <span>•</span>
+        <span>AUTOMATIC UNIVERSITY COVER PAGES</span>
+        <span>•</span>
+        <span>PASTE MARKDOWN OR HIGHLIGHT PDF</span>
+        <span>•</span>
+        <span>ONE-CLICK INSTANT EXPORT</span>
+        <span>★ SLUSH LAB SHEET CREATOR</span>
+        <span>•</span>
+        <span>INFLATABLE STICKER UNIVERSE ON PASTEL PAPER</span>
+        <span>•</span>
+        <span>AUTOMATIC UNIVERSITY COVER PAGES</span>
+        <span>•</span>
+        <span>PASTE MARKDOWN OR HIGHLIGHT PDF</span>
+        <span>•</span>
+        <span>ONE-CLICK INSTANT EXPORT</span>
+      </div>
+    </div>
   );
 
   if (!isInitialized) {
-    return <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 text-indigo-600 dark:text-indigo-400 font-bold text-xl">Loading Lab Sheet...</div>;
-  }
-
-  if (!isSetupComplete) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors">
-        <div className="w-full max-w-3xl">
-          <div className="flex justify-end mb-4">
-            <DarkModeToggle />
-          </div>
-          <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-            <div className="p-8 pb-0">
-              <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight text-center">Setup Lab Sheet</h1>
-              <p className="text-gray-500 dark:text-gray-400 text-center text-lg mb-8">Please verify your cover page details before starting the lab.</p>
-            </div>
-            <div className="px-8 pb-8">
-              {/* Include Cover Page Toggle */}
-              <div className="mb-6 flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Include University Cover Page</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Disable to skip the cover page and jump straight to questions.</p>
-                </div>
-                <button
-                  onClick={toggleFrontPage}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
-                    metadata.includeFrontPage ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                  role="switch"
-                  aria-checked={metadata.includeFrontPage}
-                  aria-label="Include University Cover Page"
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                      metadata.includeFrontPage ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {metadata.includeFrontPage && (
-                <FrontPageEditor initiallyOpen={true} />
-              )}
-              <button
-                onClick={completeSetup}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-xl shadow-md transition-all active:scale-95 text-lg flex items-center justify-center gap-2"
-              >
-                {metadata.includeFrontPage ? 'Confirm Details & Start Lab' : 'Skip Cover Page & Start Lab'}
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="flex h-screen w-full items-center justify-center bg-[#dceeff] text-black font-display font-extrabold text-3xl tracking-tight">
+        LOADING SLUSH LABS...
       </div>
     );
   }
 
-  return (
-    <div className="flex h-screen w-full font-sans bg-gray-50 dark:bg-gray-900 overflow-hidden transition-colors">
-      {/* Left Panel (50% Width) - PDF Reader */}
-      <PdfViewerPanel />
+  // Home Page (Setup Screen)
+  if (!isSetupComplete) {
+    return (
+      <div className="min-h-screen bg-[#dceeff] flex flex-col font-sans text-black selection:bg-[#ffd731] selection:text-black">
+        {/* Full-bleed Marquee */}
+        <MarqueeStrip />
 
-      {/* Right Panel (50% Width) - Interactive Feed */}
-      <div className="w-1/2 bg-[#f8fafc] dark:bg-gray-900 flex flex-col h-full">
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm z-10 sticky top-0 shrink-0">
-          {/* Top row: Title + Dark Mode Toggle */}
-          <div className="flex justify-between items-center p-4 px-6 pb-2">
-            <div>
-              <h2 className="text-xl font-extrabold text-gray-800 dark:text-white tracking-tight">Editor</h2>
-              <p className="text-gray-500 dark:text-gray-400 mt-0.5 font-medium text-sm">Manage and attach screenshots to your questions.</p>
+        {/* Top Slush Nav */}
+        <header className="px-6 py-4 flex items-center justify-between border-b border-black bg-white/80 backdrop-blur-xs sticky top-0 z-20">
+          <div className="flex items-center gap-3">
+            {/* Logo Mark: Circular black-outlined 'S' badge */}
+            <div className="w-10 h-10 rounded-full border border-black bg-white flex items-center justify-center font-display font-extrabold text-xl text-black">
+              S
             </div>
-            <DarkModeToggle />
+            <div className="flex flex-col">
+              <span className="font-display font-extrabold text-2xl uppercase tracking-tight leading-none text-black">
+                SLUSH
+              </span>
+              <span className="text-[10px] font-bold tracking-[0.032em] uppercase text-black/60">
+                Lab Sheet System
+              </span>
+            </div>
           </div>
 
-          {/* Bottom row: Action Buttons */}
-          <div className="flex items-center gap-2 px-6 pb-3 pt-1">
-            <button
-              onClick={() => {
-                if (window.confirm('Are you sure you want to clear all questions and screenshots? Your metadata will be saved.')) {
-                  resetWorkspace();
-                }
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-800 transition-all shadow-sm active:scale-95 text-xs"
-              title="Clear all questions and screenshots"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-              Clear
-            </button>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-flex px-3 py-1.5 rounded-full border border-black bg-[#ffd731] text-[11px] font-bold tracking-[0.032em] uppercase">
+              ★ Paper Edition
+            </span>
+            <span className="px-3 py-1.5 rounded-full border border-black bg-[#e9ccff] text-[11px] font-bold tracking-[0.032em] uppercase">
+              Light Canvas
+            </span>
+          </div>
+        </header>
 
-            <button
-              onClick={generateHtmlBackup}
-              disabled={questions.length === 0}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold border transition-all text-xs
-                ${questions.length === 0
-                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-600 cursor-not-allowed'
-                  : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white shadow-sm active:scale-95'
-                }`}
-              title="Download text backup if PDF engine fails"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              Backup
-            </button>
+        {/* Hero & Setup Section */}
+        <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 flex flex-col items-center">
+          {/* Sculptural Display Headline Block with Decorative Stickers */}
+          <div className="w-full text-center relative py-8 select-none">
+            {/* Floating Sticker 1 - Ember Rocket */}
+            <div className="hidden md:flex absolute left-4 top-2 -rotate-6 items-center gap-1.5 px-3 py-1.5 rounded-[20px] bg-[#fb4903] text-white border border-black text-xs font-bold uppercase tracking-[0.032em]">
+              <span>🚀</span> Fast Export
+            </div>
 
-            <PDFDownloadLink
-              document={<LabDocument metadata={metadata} questions={questions} />}
-              fileName={
-                metadata.assignmentType?.toUpperCase() === 'LAB'
-                  ? `Lab_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`
-                  : `${metadata.rollNumber}_${metadata.courseCode}_${metadata.studentName.replace(/\s+/g, '_')}.pdf`
-              }
-            >
-              {({ loading }) => (
+            {/* Floating Sticker 2 - Mint Pop Badge */}
+            <div className="hidden md:flex absolute right-6 top-4 rotate-3 items-center gap-1.5 px-3 py-1.5 rounded-[20px] bg-[#55db9c] text-black border border-black text-xs font-bold uppercase tracking-[0.032em]">
+              <span>✓</span> Offline Ready
+            </div>
+
+            {/* Floating Sticker 3 - Sunburst Coin */}
+            <div className="hidden lg:flex absolute right-16 bottom-0 rotate-6 items-center gap-1.5 px-3 py-1.5 rounded-[20px] bg-[#ffd731] text-black border border-black text-xs font-bold uppercase tracking-[0.032em]">
+              <span>★</span> 100% Free
+            </div>
+
+            {/* Crushed Display Type (Lateral style via Antonio 800) */}
+            <h1 className="font-display font-black text-6xl sm:text-8xl md:text-9xl text-black tracking-tight uppercase leading-[0.78]">
+              LAB SHEET
+            </h1>
+            <div className="font-display font-black text-5xl sm:text-7xl md:text-8xl text-black tracking-tight uppercase leading-[0.78] mt-1">
+              CREATOR
+            </div>
+
+            {/* Tagline Subhead */}
+            <p className="mt-6 text-sm sm:text-base font-medium text-black max-w-xl mx-auto leading-relaxed tracking-[-0.01em]">
+              Inflatable sticker universe on pastel paper. Build formatted university lab sheets with official cover pages in seconds.
+            </p>
+          </div>
+
+          {/* Main Card Surface */}
+          <div className="w-full bg-white rounded-[28px] border border-black p-6 sm:p-10 mb-12 relative">
+            {/* University Cover Page Section */}
+            <div className="mb-8 pb-8 border-b border-black/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-[20px] bg-[#f8fafc] border border-black">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#55db9c] border border-black"></span>
+                    <h3 className="font-bold text-base text-black tracking-tight">University Cover Page</h3>
+                  </div>
+                  <p className="text-xs text-black/60 mt-0.5">
+                    Include or skip the formal university cover page (logo, course code, student info).
+                  </p>
+                </div>
+
+                {/* Pill Switch */}
+                <button
+                  onClick={toggleFrontPage}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black text-xs font-bold tracking-[0.032em] uppercase transition-all cursor-pointer ${
+                    metadata.includeFrontPage
+                      ? 'bg-[#55db9c] text-black'
+                      : 'bg-[#e9e9e9] text-black/60'
+                  }`}
+                  role="switch"
+                  aria-checked={metadata.includeFrontPage}
+                >
+                  <span>{metadata.includeFrontPage ? '✓ Included' : '✕ Skipped'}</span>
+                </button>
+              </div>
+
+              {metadata.includeFrontPage && (
+                <div className="mt-4">
+                  <FrontPageEditor initiallyOpen={false} />
+                </div>
+              )}
+            </div>
+
+            {/* Mode Selection Section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-sm font-bold tracking-[0.032em] uppercase text-black">
+                  Choose Creation Mode:
+                </label>
+                <span className="text-xs font-bold text-black/50 uppercase tracking-[0.032em]">
+                  Default: Blank Sheet
+                </span>
+              </div>
+
+              {/* 3 Slush Mode Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Option 1: Blank Lab Sheet (DEFAULT) */}
+                <button
+                  type="button"
+                  onClick={() => setHomeMode('blank')}
+                  className={`p-5 rounded-[24px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                    homeMode === 'blank'
+                      ? 'bg-[#ffd731] shadow-none ring-2 ring-black'
+                      : 'bg-white hover:bg-[#fff9d9]'
+                  }`}
+                >
+                  <div>
+                    <div className="w-10 h-10 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-sm mb-3">
+                      ✍️
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-bold text-black text-base tracking-tight">Blank Lab Sheet</h4>
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-black text-white px-2 py-0.5 rounded-full">
+                        Default
+                      </span>
+                    </div>
+                    <p className="text-xs text-black/70 mt-1.5 leading-relaxed font-medium">
+                      Start directly in the clean full editor. Add questions, code, and paste screenshots manually.
+                    </p>
+                  </div>
+                  {homeMode === 'blank' && (
+                    <span className="mt-4 inline-flex items-center text-xs font-bold uppercase tracking-[0.032em] text-black">
+                      ● Active Selection
+                    </span>
+                  )}
+                </button>
+
+                {/* Option 2: Paste Markdown */}
+                <button
+                  type="button"
+                  onClick={() => setHomeMode('markdown')}
+                  className={`p-5 rounded-[24px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                    homeMode === 'markdown'
+                      ? 'bg-[#e9ccff] shadow-none ring-2 ring-black'
+                      : 'bg-white hover:bg-[#f5e6ff]'
+                  }`}
+                >
+                  <div>
+                    <div className="w-10 h-10 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-sm mb-3">
+                      📝
+                    </div>
+                    <h4 className="font-bold text-black text-base tracking-tight">Paste Markdown</h4>
+                    <p className="text-xs text-black/70 mt-1.5 leading-relaxed font-medium">
+                      Paste .md text with code blocks. Convert directly to PDF with the cover page or load into editor.
+                    </p>
+                  </div>
+                  {homeMode === 'markdown' && (
+                    <span className="mt-4 inline-flex items-center text-xs font-bold uppercase tracking-[0.032em] text-black">
+                      ● Active Selection
+                    </span>
+                  )}
+                </button>
+
+                {/* Option 3: PDF to Highlight */}
+                <button
+                  type="button"
+                  onClick={() => setHomeMode('pdf')}
+                  className={`p-5 rounded-[24px] border border-black text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                    homeMode === 'pdf'
+                      ? 'bg-[#dceeff] shadow-none ring-2 ring-black'
+                      : 'bg-white hover:bg-[#eef6ff]'
+                  }`}
+                >
+                  <div>
+                    <div className="w-10 h-10 rounded-full bg-black text-white border border-black flex items-center justify-center font-bold text-sm mb-3">
+                      📑
+                    </div>
+                    <h4 className="font-bold text-black text-base tracking-tight">Highlight PDF</h4>
+                    <p className="text-xs text-black/70 mt-1.5 leading-relaxed font-medium">
+                      Split-screen mode: upload lab sheet PDF on left, highlight text to create questions on right.
+                    </p>
+                  </div>
+                  {homeMode === 'pdf' && (
+                    <span className="mt-4 inline-flex items-center text-xs font-bold uppercase tracking-[0.032em] text-black">
+                      ● Active Selection
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Dynamic Action Area */}
+            {homeMode === 'markdown' ? (
+              <div className="pt-6">
+                <MarkdownConverter
+                  variant="inline"
+                  onSuccessOpenEditor={() => {
+                    setShowPdfViewer(false);
+                    completeSetup();
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="pt-8">
+                {/* Slush Filled CTA Button: 1600px radius, black background, white text */}
                 <button
                   onClick={() => {
-                    setHasDownloaded(true);
-                    setTimeout(() => setShowFeedbackDialog(true), 500);
+                    setShowPdfViewer(homeMode === 'pdf');
+                    completeSetup();
                   }}
-                  disabled={loading || questions.length === 0}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg font-semibold text-white shadow-sm transition-all text-xs
-                  ${loading || questions.length === 0
-                      ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed'
-                      : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-md active:scale-95'
-                    }
-                `}
+                  className="w-full bg-black hover:bg-neutral-800 text-white font-bold tracking-[0.032em] uppercase py-4 px-8 rounded-full border border-black transition-all active:scale-[0.99] text-base flex items-center justify-center gap-3 cursor-pointer"
                 >
-                  {loading ? (
+                  {homeMode === 'blank' ? (
                     <>
-                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Generating...
+                      <span>Start Blank Lab Sheet</span>
+                      <span className="text-lg">→</span>
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                      </svg>
-                      Download PDF
+                      <span>Start with PDF Highlighter</span>
+                      <span className="text-lg">→</span>
                     </>
                   )}
                 </button>
-              )}
-            </PDFDownloadLink>
+              </div>
+            )}
           </div>
-        </div>
+        </main>
+      </div>
+    );
+  }
 
-        {hasDownloaded && (
-          <div className="m-4 p-4 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-xl relative shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 z-10">
-            <div className="text-emerald-800 dark:text-emerald-300 font-medium text-sm pr-6">
-              🎉 PDF Generated Successfully! If this tool saved you time today, please consider giving it a star on GitHub.
-            </div>
-            <a
-              href="https://github.com/Ani-github-24/Lab-Sheet-Creator"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 font-bold text-sm shadow-sm transition-all whitespace-nowrap"
-            >
-              ⭐ Star on GitHub
-            </a>
-            <button
-              onClick={() => setHasDownloaded(false)}
-              className="absolute top-2 right-2 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 p-1 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-800/50 transition-colors"
-              aria-label="Dismiss"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-          </div>
+  // Interactive Editor Workspace
+  return (
+    <div className="flex flex-col h-screen w-full font-sans bg-[#dceeff] text-black overflow-hidden selection:bg-[#ffd731] selection:text-black">
+      {/* Marquee Banner */}
+      <MarqueeStrip />
+
+      {/* Main App Workspace */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel - Optional PDF Reader */}
+        {showPdfViewer && (
+          <PdfViewerPanel />
         )}
 
-        <div className="overflow-y-auto flex-1 bg-slate-50/50 dark:bg-gray-900/50">
-          <BuilderPanel />
+        {/* Right/Main Panel - Interactive Editor */}
+        <div className={`${showPdfViewer ? 'w-1/2' : 'w-full'} bg-[#dceeff] flex flex-col h-full transition-all duration-200`}>
+          {/* Top Slush Header */}
+          <div className="bg-white border-b border-black z-10 sticky top-0 shrink-0">
+            {/* Top row: Brand & Info */}
+            <div className="flex justify-between items-center px-6 py-3.5 border-b border-black/10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full border border-black bg-white flex items-center justify-center font-display font-extrabold text-sm text-black">
+                  S
+                </div>
+                <div>
+                  <h2 className="font-display font-black text-2xl uppercase tracking-tight text-black leading-none">
+                    EDITOR WORKSPACE
+                  </h2>
+                  <p className="text-[11px] font-bold text-black/60 uppercase tracking-[0.032em] mt-0.5">
+                    Lab {metadata.labNumber || '1'} • {metadata.courseCode || 'Course'} • {questions.length} Questions
+                  </p>
+                </div>
+              </div>
+
+              {/* Status pill badge */}
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full border border-black bg-[#55db9c] text-[11px] font-bold tracking-[0.032em] uppercase">
+                  ● Live Editor
+                </span>
+              </div>
+            </div>
+
+            {/* Bottom row: Slush Pill Action Buttons */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-6 py-2.5 bg-white">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Toggle PDF panel button */}
+                <button
+                  onClick={togglePdfViewer}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold tracking-[0.032em] uppercase border border-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    showPdfViewer
+                      ? 'bg-[#ffd731] text-black'
+                      : 'bg-white text-black hover:bg-[#e9e9e9]'
+                  }`}
+                  title={showPdfViewer ? 'Hide PDF side panel' : 'Open PDF to highlight questions'}
+                >
+                  <span>📑</span>
+                  <span>{showPdfViewer ? 'PDF Panel: ON' : '+ Add PDF to Highlight'}</span>
+                </button>
+
+                {/* Paste Markdown button */}
+                <button
+                  onClick={() => setShowMarkdownModal(true)}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-bold tracking-[0.032em] uppercase border border-black bg-white text-black hover:bg-[#e9ccff] transition-all cursor-pointer flex items-center gap-1.5"
+                  title="Paste Markdown notes or convert to PDF"
+                >
+                  <span>📝</span>
+                  <span>Paste .md</span>
+                </button>
+
+                {/* Clear Workspace button */}
+                <button
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to clear all questions and screenshots? Your metadata will be saved.')) {
+                      resetWorkspace();
+                    }
+                  }}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-bold tracking-[0.032em] uppercase border border-black bg-white text-black hover:bg-[#fb4903] hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
+                  title="Clear all questions"
+                >
+                  <span>🗑</span>
+                  <span>Clear</span>
+                </button>
+
+                {/* HTML Backup button */}
+                <button
+                  onClick={generateHtmlBackup}
+                  disabled={questions.length === 0}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold tracking-[0.032em] uppercase border border-black transition-all flex items-center gap-1.5 ${
+                    questions.length === 0
+                      ? 'bg-[#e9e9e9] text-black/40 border-black/30 cursor-not-allowed'
+                      : 'bg-white text-black hover:bg-[#e9e9e9] cursor-pointer'
+                  }`}
+                  title="Download HTML backup"
+                >
+                  <span>💾</span>
+                  <span>Backup</span>
+                </button>
+              </div>
+
+              {/* Slush Filled Primary CTA: Download PDF */}
+              <div>
+                <PDFDownloadLink
+                  document={<LabDocument metadata={metadata} questions={questions} />}
+                  fileName={getPdfFileName(metadata)}
+                >
+                  {({ loading }) => (
+                    <button
+                      onClick={() => {
+                        setHasDownloaded(true);
+                        setTimeout(() => setShowFeedbackDialog(true), 500);
+                      }}
+                      disabled={loading || questions.length === 0}
+                      className={`px-5 py-2 rounded-full text-xs font-bold tracking-[0.032em] uppercase border border-black transition-all flex items-center gap-2 ${
+                        loading || questions.length === 0
+                          ? 'bg-[#e9e9e9] text-black/40 border-black/30 cursor-not-allowed'
+                          : 'bg-black text-white hover:bg-neutral-800 cursor-pointer active:scale-95'
+                      }`}
+                    >
+                      {loading ? (
+                        <span>GENERATING...</span>
+                      ) : (
+                        <>
+                          <span>⬇</span>
+                          <span>Download PDF</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </PDFDownloadLink>
+              </div>
+            </div>
+          </div>
+
+          {/* Download Success Banner */}
+          {hasDownloaded && (
+            <div className="m-4 p-4 bg-[#55db9c] border border-black rounded-[20px] flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 z-10">
+              <div className="text-black font-bold text-xs uppercase tracking-[0.032em]">
+                🎉 PDF Generated Successfully!
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://github.com/Ani-github-24/Lab-Sheet-Creator"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-1.5 bg-white text-black border border-black rounded-full font-bold text-xs uppercase tracking-[0.032em] hover:bg-black hover:text-white transition-all"
+                >
+                  ⭐ Star on GitHub
+                </a>
+                <button
+                  onClick={() => setHasDownloaded(false)}
+                  className="w-7 h-7 rounded-full bg-white border border-black flex items-center justify-center font-bold text-xs cursor-pointer hover:bg-black hover:text-white"
+                  aria-label="Dismiss"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Builder Panel Container */}
+          <div className="overflow-y-auto flex-1 p-4 sm:p-6">
+            <div className={showPdfViewer ? 'w-full h-full' : 'max-w-4xl mx-auto w-full h-full'}>
+              <BuilderPanel />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Post-Download Feedback Dialog */}
       {showFeedbackDialog && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-6">
-            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">Was the PDF formatted correctly?</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              Sometimes complex layouts or very large code blocks can cause the PDF engine to glitch.
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-2xs z-50 p-4">
+          <div className="bg-white rounded-[28px] border border-black max-w-md w-full p-8 text-center space-y-5">
+            <div className="w-12 h-12 rounded-full bg-[#ffd731] border border-black mx-auto flex items-center justify-center text-xl font-bold">
+              ✨
+            </div>
+            <h3 className="font-display font-extrabold text-2xl uppercase tracking-tight text-black">
+              PDF FORMATTED CORRECTLY?
+            </h3>
+            <p className="text-xs font-medium text-black/70 leading-relaxed">
+              Large terminal outputs or code blocks may wrap differently depending on character widths.
             </p>
-            
-            <div className="flex flex-col gap-3 mt-4">
+
+            <div className="flex flex-col gap-2 pt-2">
               <button
                 onClick={() => setShowFeedbackDialog(false)}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95"
+                className="w-full bg-black hover:bg-neutral-800 text-white font-bold tracking-[0.032em] uppercase py-3 px-4 rounded-full border border-black transition-all cursor-pointer text-xs"
               >
-                Yes (Looks Good)
+                Yes, Looks Great!
               </button>
-              
               <button
                 onClick={() => {
                   generateHtmlBackup();
                   setShowFeedbackDialog(false);
                 }}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="w-full bg-white hover:bg-[#ffd731] text-black font-bold tracking-[0.032em] uppercase py-3 px-4 rounded-full border border-black transition-all cursor-pointer text-xs"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                Download Backup
+                Download HTML Backup
               </button>
-
               <button
                 onClick={() => setShowFeedbackDialog(false)}
-                className="w-full bg-transparent hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 font-bold py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-600 transition-all active:scale-95"
+                className="w-full bg-[#e9e9e9] hover:bg-[#cccccc] text-black font-bold tracking-[0.032em] uppercase py-3 px-4 rounded-full border border-black transition-all cursor-pointer text-xs"
               >
-                Try Again (Adjust layout)
+                Dismiss
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Markdown Import Modal */}
+      {showMarkdownModal && (
+        <MarkdownConverter
+          variant="modal"
+          onClose={() => setShowMarkdownModal(false)}
+          onSuccessOpenEditor={() => setShowMarkdownModal(false)}
+        />
       )}
     </div>
   );
